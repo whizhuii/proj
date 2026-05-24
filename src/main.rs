@@ -447,7 +447,7 @@ fn cmd_sync() {
     );
 }
 
-fn cmd_list(no_color: bool, names: bool, flat: bool, cats: bool, all: bool, filtered: bool, filter: Option<&str>) {
+fn cmd_list(no_color: bool, names: bool, flat: bool, cats: bool, all: bool, _filtered: bool, filter: Option<&str>) {
     let settings = read_settings();
     let projects = read_projects();
     let root = project_root();
@@ -532,13 +532,14 @@ fn cmd_list(no_color: bool, names: bool, flat: bool, cats: bool, all: bool, filt
             }
             by_cat.entry(c.to_string()).or_default();
         }
-    } else if filtered && filter.is_none() {
+    } else {
         for cat in &settings.visible_categories {
             by_cat.entry(cat.clone()).or_default();
         }
         by_cat.retain(|cat, _| settings.is_category_visible(cat));
-    } else {
-        by_cat.retain(|_, names| !names.is_empty());
+        if let Some(f) = filter {
+            by_cat.retain(|cat, _| cat == f);
+        }
     }
 
     if by_cat.is_empty() {
