@@ -202,8 +202,10 @@ proj 在 `~/.config/proj/` 下维护两个文件：
 
 [fzf](https://github.com/junegunn/fzf) — 通用命令行模糊搜索工具 — 为 fzf 模式提供交互式选择器。
 
-由 [DeepSeek V4 Flash](https://deepseek.com) 与 [pro](https://github.com/whizhuii) 共同构建。
-
 ## 许可证
 
 MIT
+
+---
+
+*本 README 由 **DeepSeek-V4-Flash** 和 **DeepSeek-V4-Pro** 编写。*
