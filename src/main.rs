@@ -393,11 +393,15 @@ fn main() {
     }
 }
 
+fn git_available() -> bool {
+    Command::new("git").arg("--version").output().is_ok()
+}
+
 fn try_git_init(dir: &std::path::Path, no_git: bool) {
     if no_git {
         return;
     }
-    if Command::new("git").arg("--version").output().is_err() {
+    if !git_available() {
         eprintln!("Warning: git not found, skipping git init");
         return;
     }
@@ -782,16 +786,23 @@ fn cmd_clone(url: &str, to: Option<&str>, git_args: &[String]) {
         std::process::exit(1);
     }
 
-    let mut cmd = Command::new("git");
-    cmd.arg("clone");
-    cmd.args(git_args.iter().map(|s| s.as_str()));
-    cmd.arg(url);
-    cmd.arg(dest.to_string_lossy().as_ref());
-    let status = cmd.status().expect("Failed to run git (is git installed?)");
+    if settings.no_git || !git_available() {
+        if !settings.no_git {
+            eprintln!("Warning: git not found, creating empty directory instead of cloning");
+        }
+        fs::create_dir_all(&dest).expect("Failed to create project directory");
+    } else {
+        let mut cmd = Command::new("git");
+        cmd.arg("clone");
+        cmd.args(git_args.iter().map(|s| s.as_str()));
+        cmd.arg(url);
+        cmd.arg(dest.to_string_lossy().as_ref());
+        let status = cmd.status().expect("Failed to run git");
 
-    if !status.success() {
-        eprintln!("Error: git clone failed");
-        std::process::exit(1);
+        if !status.success() {
+            eprintln!("Error: git clone failed");
+            std::process::exit(1);
+        }
     }
 
     let mut projects = read_projects();
@@ -1050,8 +1061,9 @@ sync_missing_to: removed
 use_fzf: false
 
 # --- Git ---
-# Set true to skip git init on `proj init` (e.g. when git is not installed).
-# Default: false (git init is performed on every new project).
+# Set true to skip all git operations (git init on `proj init`, git clone on `proj clone`).
+# When true, `proj clone` creates an empty directory instead of cloning.
+# Default: false (git is used for all operations).
 # no_git: true
 
 # --- Project root ---
