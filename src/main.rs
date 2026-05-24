@@ -459,7 +459,7 @@ fn cmd_list(no_color: bool, names: bool, flat: bool, cats: bool, all: bool, filt
         if has_dirs {
             println!("No registered projects. Run 'proj sync' to register existing directories.");
         } else {
-            println!("~/{}/ is empty.", display_path(&root).trim_end_matches('/'));
+            println!("{} is empty.", display_path(&root));
             println!("Create a project:  proj init <name>");
             println!("Clone a project:   proj clone <url>");
         }
