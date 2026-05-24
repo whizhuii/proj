@@ -202,6 +202,8 @@ Inspired by [pass](https://www.passwordstore.org/), the standard Unix password m
 
 [fzf](https://github.com/junegunn/fzf) — a general-purpose command-line fuzzy finder — powers the interactive picker in fzf mode.
 
+Built with [DeepSeek V4 Flash](https://deepseek.com) and [pro](https://github.com/whizhuii).
+
 ## License
 
 MIT
