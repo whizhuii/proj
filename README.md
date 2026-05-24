@@ -208,4 +208,4 @@ MIT
 
 ---
 
-*This README was written by **DeepSeek-V4-Flash** and **DeepSeek-V4-Pro**.*
+*This project was written with [DeepSeek-V4-Flash](https://chat.deepseek.com/) and [DeepSeek-V4-Pro](https://chat.deepseek.com/).*
