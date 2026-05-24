@@ -23,7 +23,7 @@ proj 把你的项目文件夹变成了一个可浏览、可搜索的目录册。
 
 ```sh
 # 安装二进制（自动检测系统/架构）
-curl -fsSL https://raw.githubusercontent.com/whizhuii/proj/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/whizhuii/proj/master/install.sh | sh
 
 # 添加到 ~/.zshrc 或 ~/.bashrc（eval 方式确保函数始终最新）
 eval "$(proj-core shell func)"

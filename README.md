@@ -23,7 +23,7 @@ proj turns your project folder into a browsable, searchable catalog. It keeps it
 
 ```sh
 # Install binary (auto-detects OS/arch)
-curl -fsSL https://raw.githubusercontent.com/whizhuii/proj/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/whizhuii/proj/master/install.sh | sh
 
 # Add to ~/.zshrc or ~/.bashrc (eval lines keep the function up-to-date)
 eval "$(proj-core shell func)"

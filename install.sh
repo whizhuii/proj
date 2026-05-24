@@ -61,35 +61,80 @@ main() {
     rm -rf "${tmpdir}"
     donef "installed ${BINARY} to ${BINDIR}"
 
-    # 4. check PATH
-    if ! echo "${PATH}" | tr ':' '\n' | grep -qFx "${BINDIR}"; then
-        warn "${BINDIR} is not in PATH — add it to your rc file:"
-        echo "    export PATH=\"\${PATH}:${BINDIR}\""
+    # 4. shell integration (rc files)
+    local rc_files=()
+    for f in "$HOME/.zshrc" "$HOME/.bashrc" "$HOME/.bash_profile" "$HOME/.zprofile"; do
+        [[ -f "$f" ]] && rc_files+=("$f")
+    done
+
+    if [[ ${#rc_files[@]} -eq 0 ]]; then
+        local shell_name
+        shell_name="$(basename "${SHELL:-/bin/sh}")"
+        case "${shell_name}" in
+            zsh)  rc_files=("$HOME/.zshrc") ;;
+            bash) rc_files=("$HOME/.bashrc") ;;
+            *)    rc_files=("$HOME/.profile") ;;
+        esac
+        info "no existing rc file found, will create ${rc_files[0]}"
     fi
 
-    # 5. shell integration
-    local rc=""
-    local shell_name
-    shell_name="$(basename "${SHELL:-/bin/sh}")"
-    case "${shell_name}" in
-        zsh) rc="${ZDOTDIR:-${HOME}}/.zshrc" ;;
-        bash) rc="${HOME}/.bashrc" ;;
-        *)    warn "unknown shell '${shell_name}' — add eval manually (see README)" ;;
-    esac
+    local selected=()
+    if [[ ${#rc_files[@]} -eq 1 ]]; then
+        selected=("${rc_files[@]}")
+    else
+        local toggle=()
+        for ((i=0; i<${#rc_files[@]}; i++)); do
+            toggle+=(0)
+        done
 
-    if [[ -n "${rc}" ]] && [[ -f "${rc}" ]]; then
-        if grep -q "proj-core shell" "${rc}" 2>/dev/null; then
-            donef "shell integration already set up in ${rc}"
-        else
-            cat >> "${rc}" <<-RCEOF
+        while true; do
+            printf "\n  Select rc files to update (Space to toggle, Enter to confirm):\n\n"
+            for ((i=0; i<${#rc_files[@]}; i++)); do
+                local mark=" "
+                [[ ${toggle[$i]} -eq 1 ]] && mark="*"
+                printf "  [%s] %d) %s\n" "$mark" $((i+1)) "${rc_files[$i]}"
+            done
+            printf "\n  Enter number to toggle, or press Enter to confirm: "
+            read -r input
+            [[ -z "$input" ]] && break
+
+            if [[ "$input" =~ ^[0-9]+$ ]] && (( input >= 1 && input <= ${#rc_files[@]} )); then
+                local idx=$((input-1))
+                toggle[$idx]=$(( 1 - toggle[$idx] ))
+            fi
+        done
+
+        for ((i=0; i<${#rc_files[@]}; i++)); do
+            [[ ${toggle[$i]} -eq 1 ]] && selected+=("${rc_files[$i]}")
+        done
+
+        if [[ ${#selected[@]} -eq 0 ]]; then
+            info "no file selected, defaulting to ${rc_files[0]}"
+            selected=("${rc_files[0]}")
+        fi
+    fi
+
+    for rc in "${selected[@]}"; do
+        local shell_name
+        case "$(basename "$rc")" in
+            .zshrc|.zprofile)       shell_name="zsh" ;;
+            .bashrc|.bash_profile)  shell_name="bash" ;;
+            *)                      shell_name="$(basename "${SHELL:-/bin/sh}")" ;;
+        esac
+
+        cat >> "$rc" <<-RCEOF
 
 # ---- proj project manager ----
+export PATH="\${PATH}:${BINDIR}"
 eval "\$(${BINARY} shell func)"
-eval "\$(${BINARY} shell completion --shell ${shell_name})"
+eval "\$(${BINARY} shell completion --mode ${shell_name})"
 RCEOF
-            donef "added shell integration to ${rc}"
-            info "restart shell or run: source ${rc}"
-        fi
+        donef "added proj to ${rc}"
+    done
+
+    if [[ ${#selected[@]} -gt 0 ]]; then
+        echo ""
+        info "Restart your shell or source the files above to apply changes."
     fi
 
     echo ""
