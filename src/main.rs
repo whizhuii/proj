@@ -453,7 +453,16 @@ fn cmd_list(no_color: bool, names: bool, flat: bool, cats: bool, all: bool, filt
     let root = project_root();
 
     if projects.is_empty() {
-        println!("No projects found. Run 'proj sync' first.");
+        let has_dirs = fs::read_dir(&root)
+            .map(|d| d.filter_map(|e| e.ok()).any(|e| e.file_type().map(|t| t.is_dir()).unwrap_or(false)))
+            .unwrap_or(false);
+        if has_dirs {
+            println!("No registered projects. Run 'proj sync' to register existing directories.");
+        } else {
+            println!("~/{}/ is empty.", display_path(&root).trim_end_matches('/'));
+            println!("Create a project:  proj init <name>");
+            println!("Clone a project:   proj clone <url>");
+        }
         return;
     }
 
