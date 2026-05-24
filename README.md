@@ -182,10 +182,6 @@ The routing fields above control how `proj` auto-classifies projects:
 | `proj sync` — new directory found | `uncategorized` | `sync_new_to` |
 | `proj sync` — directory missing | `removed` | `sync_missing_to` |
 
-### Legacy migration
-
-Older versions used a `cat_visible` map field. If present, `proj` auto-migrates it to the new `visible_categories` list on read.
-
 ## Data storage
 
 proj maintains two files under `~/.config/proj/`:
@@ -199,24 +195,19 @@ The **projects file** is the source of truth for categorization. `proj sync` rec
 
 ## Architecture
 
-proj is split into two layers — a **backend binary** and a **frontend shell function** — working together to deliver the one-key `cd` experience.
+proj has two layers — a **backend binary** and a **frontend shell function**.
 
-| Layer | What | Where |
-|-------|------|-------|
-| **Backend** | `proj-core` binary | Written in Rust. Handles all data: reading/writing YAML config & project registry, git operations, sync, rename. Outputs flat text for the frontend. |
-| **Frontend** | `proj()` shell function | Defined by `eval "$(proj-core shell func)"` in `.zshrc`/`.bashrc`. Calls `proj-core list --flat`, pipes through `fzf`, then **`cd`s into the selected directory**. |
+| Layer | What | Role |
+|-------|------|------|
+| **Backend** | `proj-core` | Rust binary. Reads/writes config & project files, runs git ops, sync, rename. Outputs text. |
+| **Frontend** | `proj()` | Shell function (defined by `eval "$(proj-core shell func)"`). Calls the backend, captures output, **`cd`s** into the project. |
 
-**Why two layers?** A binary running as a child process cannot change its parent shell's working directory — that would be a security violation. The shell function runs in-process with your terminal, so it can `cd`. The binary does all the heavy lifting (listing, filtering, matching), prints the result to stdout, and the function captures it and calls `cd`.
+**Why two layers?** A child process cannot `cd` its parent shell — that's a security boundary. The shell function runs in your terminal's process, so it can `cd`. The backend does all the data work; the function just captures the result and jumps.
 
-The complete data flow for `proj blog` is:
+Data flow depends on the active mode:
 
-```
-You type "proj blog"
-  → proj() calls "proj-core list --flat" and pipes through fzf
-    → proj-core reads projects.yaml, filters, prints matching paths to stdout
-  → proj() captures the resulting path
-  → cd ~/Project/blog          ← this is why we need a shell function
-```
+- **Pass mode** (`use_fzf: false`): `proj <query>` → backend does case-insensitive substring match → prints the path → function `cd`s.
+- **Fzf mode** (`use_fzf: true`): `proj` → backend prints all paths → piped through `fzf` for interactive filtering → user selects → function `cd`s.
 
 ## Credits
 

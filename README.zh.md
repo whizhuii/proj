@@ -182,10 +182,6 @@ sync_missing_to: removed
 | `proj sync` — 发现新目录 | `uncategorized` | `sync_new_to` |
 | `proj sync` — 目录已消失 | `removed` | `sync_missing_to` |
 
-### 旧版迁移
-
-旧版本使用 `cat_visible` 映射字段。如果存在，`proj` 会在读取时自动迁移为新的 `visible_categories` 列表。
-
 ## 数据存储
 
 proj 在 `~/.config/proj/` 下维护两个文件：
@@ -199,24 +195,19 @@ proj 在 `~/.config/proj/` 下维护两个文件：
 
 ## 架构
 
-proj 分为两层——**后端二进制**与**前端 shell 函数**——协同实现一键 `cd`。
+proj 分为两层——**后端二进制**与**前端 shell 函数**。
 
 | 层 | 是什么 | 职责 |
 |----|--------|------|
-| **后端** | `proj-core` 二进制 | Rust 编写。处理所有数据：读写 YAML 配置及项目注册表、git 操作、同步、重命名。输出纯文本供前端使用。 |
-| **前端** | `proj()` shell 函数 | 由 `eval "$(proj-core shell func)"` 定义，置于 `.zshrc`/`.bashrc`。调用 `proj-core list --flat`，经 `fzf` 过滤后，**`cd` 到所选目录**。 |
+| **后端** | `proj-core` | Rust 二进制。读写配置与项目文件、git 操作、同步、重命名。输出文本。 |
+| **前端** | `proj()` | Shell 函数（由 `eval "$(proj-core shell func)"` 定义）。调用后端，捕获输出，**`cd`** 到项目。 |
 
-**为什么分两层？** 子进程无法改变父 shell 的当前工作目录——这是安全限制。shell 函数与终端运行在同一进程中，因此可以执行 `cd`。二进制负责所有重活（列表、过滤、匹配），将结果输出到 stdout，函数捕获后执行 `cd`。
+**为什么分两层？** 子进程无法改变父 shell 的当前目录——这是安全边界。shell 函数与终端在同一进程运行，所以能 `cd`。后端处理所有数据工作；函数只负责捕获结果并跳转。
 
-`proj blog` 的完整数据流：
+数据流取决于当前模式：
 
-```
-输入 "proj blog"
-  → proj() 调用 "proj-core list --flat" 经 fzf 过滤
-    → proj-core 读取 projects.yaml，过滤，将匹配路径输出到 stdout
-  → proj() 捕获结果路径
-  → cd ~/Project/blog          ← 这就是为什么需要 shell 函数
-```
+- **Pass 模式**（`use_fzf: false`）：`proj <query>` → 后端做大小写不敏感子串匹配 → 输出路径 → 函数 `cd`。
+- **Fzf 模式**（`use_fzf: true`）：`proj` → 后端输出所有路径 → 经 `fzf` 交互过滤 → 用户选择 → 函数 `cd`。
 
 ## Credits
 
