@@ -34,8 +34,23 @@ struct Config {
 }
 
 fn default_project_dir() -> String {
-    let home = dirs::home_dir().expect("Cannot find home directory");
-    home.join("Project").to_string_lossy().to_string()
+    "~/Project".to_string()
+}
+
+fn expand_tilde(path: &PathBuf) -> PathBuf {
+    if let Some(p) = path.to_str() {
+        if p.starts_with("~/") {
+            if let Some(home) = dirs::home_dir() {
+                return home.join(&p[2..]);
+            }
+        }
+        if p == "~" {
+            if let Some(home) = dirs::home_dir() {
+                return home;
+            }
+        }
+    }
+    path.clone()
 }
 
 fn default_visible_categories() -> Vec<String> {
@@ -150,7 +165,7 @@ fn projects_path() -> PathBuf {
 
 fn project_root() -> PathBuf {
     let settings = read_settings();
-    let path = PathBuf::from(settings.project_dir);
+    let path = expand_tilde(&PathBuf::from(&settings.project_dir));
     if !path.exists() {
         fs::create_dir_all(&path).expect("Failed to create project directory");
     }
@@ -1290,8 +1305,7 @@ mod tests {
     #[test]
     fn test_config_default_project_dir() {
         let cfg = Config::default();
-        let expected = dirs::home_dir().unwrap().join("Project");
-        assert_eq!(cfg.project_dir, expected.to_string_lossy());
+        assert_eq!(cfg.project_dir, "~/Project");
     }
 
     #[test]
