@@ -2,8 +2,6 @@
   <img src="logo.svg" alt="proj" width="160">
 </p>
 
-<h1 align="center">proj</h1>
-
 <p align="center">
   不是项目管理，是项目目录管理。<br>
   用分类、模糊搜索和一键 cd 来管理你的 coding 项目目录。
