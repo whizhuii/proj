@@ -114,7 +114,7 @@ proj init -t stable my-new-thing           # Init directly into stable
 
 | Command | Description |
 |---------|-------------|
-| `proj list [cat]` | Show tree, optionally filtered by category |
+| `proj list [cat]` | Show tree (visible categories only), `-a` for all |
 | `proj mv <name> <cat>` | Move project to a different category |
 | `proj rm <name>` | Move project to `removed` |
 
@@ -211,14 +211,11 @@ Data flow depends on the active mode:
 
 ## Credits
 
-Inspired by [pass](https://www.passwordstore.org/), the standard Unix password manager.
-
-[fzf](https://github.com/junegunn/fzf) — a general-purpose command-line fuzzy finder — powers the interactive picker in fzf mode.
+- [pass](https://www.passwordstore.org/) — the standard Unix password manager, which inspired proj's two-mode design
+- [fzf](https://github.com/junegunn/fzf) — a general-purpose command-line fuzzy finder powering the interactive picker
+- [opencode](https://opencode.ai) — the AI coding assistant that built this project
+- [DeepSeek-V4-Flash](https://chat.deepseek.com/) & [DeepSeek-V4-Pro](https://chat.deepseek.com/) — the language models behind the AI
 
 ## License
 
 MIT
-
----
-
-*This project was written with [DeepSeek-V4-Flash](https://chat.deepseek.com/) and [DeepSeek-V4-Pro](https://chat.deepseek.com/).*

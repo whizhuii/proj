@@ -114,7 +114,7 @@ proj init -t stable my-new-thing          直接创建在 stable 分类下
 
 | 命令 | 说明 |
 |------|------|
-| `proj list [cat]` | 显示树，可选按分类过滤 |
+| `proj list [cat]` | 显示树（仅可见分类），`-a` 显示全部 |
 | `proj mv <name> <cat>` | 移动项目到其他分类 |
 | `proj rm <name>` | 移入 removed 分类 |
 
@@ -211,14 +211,11 @@ proj 分为两层——**后端二进制**与**前端 shell 函数**。
 
 ## Credits
 
-灵感来自 [pass](https://www.passwordstore.org/)，标准的 Unix 密码管理器。
-
-[fzf](https://github.com/junegunn/fzf) — 通用命令行模糊搜索工具 — 为 fzf 模式提供交互式选择器。
+- [pass](https://www.passwordstore.org/) — 标准 Unix 密码管理器，proj 双模式设计的灵感来源
+- [fzf](https://github.com/junegunn/fzf) — 通用命令行模糊搜索工具，为交互选择器提供支持
+- [opencode](https://opencode.ai) — 构建此项目的 AI 编码助手
+- [DeepSeek-V4-Flash](https://chat.deepseek.com/) 与 [DeepSeek-V4-Pro](https://chat.deepseek.com/) — AI 背后的语言模型
 
 ## 许可证
 
 MIT
-
----
-
-*本项目由 [DeepSeek-V4-Flash](https://chat.deepseek.com/) 与 [DeepSeek-V4-Pro](https://chat.deepseek.com/) 协助完成。*

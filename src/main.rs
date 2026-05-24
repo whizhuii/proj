@@ -399,10 +399,8 @@ fn cmd_list(no_color: bool, names: bool, flat: bool, cats: bool, all: bool, filt
             true
         } else if let Some(f) = filter {
             cat == f
-        } else if filtered {
-            settings.is_category_visible(cat)
         } else {
-            true
+            settings.is_category_visible(cat)
         }
     };
 
@@ -1043,7 +1041,7 @@ proj() {
           return
         fi
         local selected
-        selected="$($PROJ_CORE list --flat | fzf --height=60% --layout=reverse --info=hidden --prompt='proj> ' --padding=1)" || return 1
+        selected="$($PROJ_CORE list --flat --all | fzf --height=60% --layout=reverse --info=hidden --prompt='proj> ' --padding=1)" || return 1
         local dir
         dir="$($PROJ_CORE go "${selected#*/}" 2>/dev/null)" && cd "$dir"
         return
