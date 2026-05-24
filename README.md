@@ -146,6 +146,10 @@ Auto-generated at `~/.config/proj/config.yaml` on first run. Below is the full c
 # All clone/init/sync operations happen under this directory.
 project_dir: ~/Project
 
+# All registered categories. proj mv / init / clone only accept
+# categories listed here. Add new ones as needed.
+categories: [develop, stable, uncategorized, dormant, archived, removed]
+
 # Which categories show up in the default `proj` tree view.
 # Categories not in this list are hidden unless you pass `-a`.
 visible_categories: [develop, stable, uncategorized]
@@ -172,7 +176,7 @@ sync_missing_to: removed
 
 ### Default routing
 
-The routing fields above control how `proj` auto-classifies projects:
+The routing fields above control how `proj` auto-classifies projects. All destination categories must be in the `categories` list.
 
 | Action / Event | Default category | Configurable via |
 |----------------|------------------|------------------|

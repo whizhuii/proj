@@ -146,6 +146,10 @@ proj init -t stable my-new-thing          直接创建在 stable 分类下
 # 所有 clone/init/sync 操作都发生在此目录下。
 project_dir: ~/Project
 
+# 所有已注册的分类。proj mv / init / clone 仅接受此列表中的分类。
+# 需要新分类时直接在此追加。
+categories: [develop, stable, uncategorized, dormant, archived, removed]
+
 # 默认 `proj` 树形视图中显示哪些分类。
 # 不在列表中的分类会被隐藏，除非加 `-a` 参数。
 visible_categories: [develop, stable, uncategorized]
@@ -172,7 +176,7 @@ sync_missing_to: removed
 
 ### 默认分类路由
 
-以上路由字段控制 `proj` 如何自动分类项目：
+以上路由字段控制 `proj` 如何自动分类项目。所有目标分类必须在 `categories` 列表中注册。
 
 | 操作/事件 | 默认分类 | 可通过配置项 |
 |-----------|----------|-------------|
