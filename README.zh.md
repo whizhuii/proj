@@ -60,19 +60,19 @@ proj 通过 `use_fzf` 设置切换两种控制模式。
 
 `proj` 显示分类树。输入 `proj <query>` 直接跳转到项目。
 
-![Pass 模式树形列表](demo-pass.gif)
+![Pass 模式树形列表](demo/demo-pass.gif)
 
 ### Fzf 模式 · `use_fzf: true`
 
 `proj` 打开模糊选择器。输入过滤，回车跳转。
 
-![Fzf 模式交互选择](demo-fzf.gif)
+![Fzf 模式交互选择](demo/demo-fzf.gif)
 
 ## 子命令
 
 除导航外，proj 还提供同步、分类和配置等功能。
 
-![init、mv、可见分类过滤演示](demo-cmd.gif)
+![init、mv、可见分类过滤演示](demo/demo-cmd.gif)
 
 ### 导航
 

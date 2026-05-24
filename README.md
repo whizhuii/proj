@@ -60,19 +60,19 @@ proj has two control modes toggled by the `use_fzf` setting.
 
 `proj` shows a categorized tree. Type `proj <query>` to jump directly to a project.
 
-![Pass mode tree view](demo-pass.gif)
+![Pass mode tree view](demo/demo-pass.gif)
 
 ### Fzf mode · `use_fzf: true`
 
 `proj` opens a fuzzy picker. Type to filter, press Enter to cd.
 
-![Fzf mode interactive picker](demo-fzf.gif)
+![Fzf mode interactive picker](demo/demo-fzf.gif)
 
 ## Subcommands
 
 Beyond navigation, proj handles synchronization, categorization, and configuration.
 
-![init, mv, visibility filter demo](demo-cmd.gif)
+![init, mv, visibility filter demo](demo/demo-cmd.gif)
 
 ### Navigate
 
