@@ -33,6 +33,10 @@ proj sync
 
 # See your project tree
 proj
+
+# Categorize projects (all start as uncategorized)
+proj mv my-project stable
+proj mv old-thing archived
 ```
 
 <details>
@@ -44,6 +48,8 @@ git clone https://github.com/whizhuii/proj && make build && make install
 </details>
 
 Requires **git** (for `proj clone` / `proj init`). **fzf** is optional but recommended for interactive mode.
+
+> The `eval "$(proj-core shell func)"` line defines the `proj()` shell function, which is required because a binary cannot change the parent shell's working directory — only the function can `cd` on your behalf.
 
 ## Two modes
 
@@ -64,8 +70,6 @@ proj has two control modes toggled by the `use_fzf` setting.
 ## Subcommands
 
 Beyond navigation, proj handles synchronization, categorization, and configuration.
-
-![Subcommands: sync go mv config](demo-cmd.gif)
 
 ### Navigate
 
@@ -125,39 +129,78 @@ proj init -t stable my-new-thing           # Init directly into stable
 | Command | Description |
 |---------|-------------|
 | `proj sync` | Scan for new/missing directories |
-| `proj prune` | Remove all `removed` entries |
+| `proj prune` | Remove entries categorized as `removed` whose disk directory no longer exists |
 | `proj rename <old> <new>` | Rename (config + disk directory) |
 | `proj edit` | Edit config with `$EDITOR` |
 | `proj config` | Show current configuration |
 
+> **Environment variable:** `PROJ_CORE` overrides the binary name (default: `proj-core`). Useful for testing or when using a custom build path.
+
 ## Configuration
 
-Auto-generated at `~/.config/proj/config.yaml` on first run. Only three fields matter day-to-day:
+Auto-generated at `~/.config/proj/config.yaml` on first run. Below is the full config with all available fields:
 
 ```yaml
-# Where projects live (default: ~/Project).
+# Where projects live on disk (default: ~/Project).
+# All clone/init/sync operations happen under this directory.
 project_dir: ~/Project
 
-# Which categories show up in the default tree view.
+# Which categories show up in the default `proj` tree view.
+# Categories not in this list are hidden unless you pass `-a`.
 visible_categories: [develop, stable, uncategorized]
 
 # Set true for always-on fzf interactive mode on bare `proj`.
+# When false (default), `proj` shows a categorized tree.
 use_fzf: false
+
+# Target category for `proj rm <name>` (default: removed).
+rm_to: removed
+
+# Target category for `proj init <name>` (default: develop).
+init_to: develop
+
+# Target category for `proj clone <url>` (default: uncategorized).
+clone_to: uncategorized
+
+# Category assigned to newly discovered directories on `proj sync` (default: uncategorized).
+sync_new_to: uncategorized
+
+# Category assigned to directories that vanished from disk on `proj sync` (default: removed).
+sync_missing_to: removed
 ```
 
 ### Default routing
 
-| Action | Category |
-|--------|----------|
-| `proj init` | `develop` |
-| `proj clone` | `uncategorized` |
-| `proj rm` | `removed` |
-| `proj sync` new dirs | `uncategorized` |
-| `proj sync` missing dirs | `removed` |
+The routing fields above control how `proj` auto-classifies projects:
+
+| Action / Event | Default category | Configurable via |
+|----------------|------------------|------------------|
+| `proj init` | `develop` | `init_to` |
+| `proj clone` | `uncategorized` | `clone_to` |
+| `proj rm` | `removed` | `rm_to` |
+| `proj sync` — new directory found | `uncategorized` | `sync_new_to` |
+| `proj sync` — directory missing | `removed` | `sync_missing_to` |
+
+### Legacy migration
+
+Older versions used a `cat_visible` map field. If present, `proj` auto-migrates it to the new `visible_categories` list on read.
+
+## Data storage
+
+proj maintains two files under `~/.config/proj/`:
+
+| File | Format | Purpose |
+|------|--------|---------|
+| `config.yaml` | YAML (key-value) | Settings — project directory, visible categories, routing defaults |
+| `projects.yaml` | YAML (flat map) | Project registry — `project_name: category` entries, one per line |
+
+The **projects file** is the source of truth for categorization. `proj sync` reconciles it against the actual directories under `project_dir` (`~/Project/` by default), adding new entries and marking missing ones according to the configured routing rules. The `proj edit` command opens this file directly for bulk changes.
 
 ## Credits
 
 Inspired by [pass](https://www.passwordstore.org/), the standard Unix password manager.
+
+[fzf](https://github.com/junegunn/fzf) — a general-purpose command-line fuzzy finder — powers the interactive picker in fzf mode.
 
 ## License
 

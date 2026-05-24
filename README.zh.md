@@ -33,6 +33,10 @@ proj sync
 
 # 查看项目树
 proj
+
+# 分类项目（刚同步完都是 uncategorized）
+proj mv my-project stable
+proj mv old-thing archived
 ```
 
 <details>
@@ -44,6 +48,8 @@ git clone https://github.com/whizhuii/proj && make build && make install
 </details>
 
 需要 **git**（`proj clone` / `proj init` 需要）。**fzf** 可选但推荐，用于交互模式。
+
+> `eval "$(proj-core shell func)"` 定义 `proj()` shell 函数，这是必需的——二进制程序无法改变父进程的当前目录，只有 shell 函数能代你执行 `cd`。
 
 ## 两种模式
 
@@ -64,8 +70,6 @@ proj 通过 `use_fzf` 设置切换两种控制模式。
 ## 子命令
 
 除导航外，proj 还提供同步、分类和配置等功能。
-
-![子命令: sync go mv config](demo-cmd.gif)
 
 ### 导航
 
@@ -125,39 +129,78 @@ proj init -t stable my-new-thing          直接创建在 stable 分类下
 | 命令 | 说明 |
 |------|------|
 | `proj sync` | 扫描新增/缺失目录 |
-| `proj prune` | 清理所有 removed 条目 |
+| `proj prune` | 删除分类为 `removed` 且磁盘目录已不存在的条目 |
 | `proj rename <旧名> <新名>` | 重命名（配置 + 磁盘目录） |
 | `proj edit` | 用 $EDITOR 编辑配置 |
 | `proj config` | 查看当前配置 |
 
+> **环境变量：** `PROJ_CORE` 可覆盖二进制名称（默认：`proj-core`）。用于测试或自定义构建路径。
+
 ## 配置
 
-首次运行自动生成 `~/.config/proj/config.yaml`。日常只需关注三个字段：
+首次运行自动生成 `~/.config/proj/config.yaml`。以下是完整的配置字段：
 
 ```yaml
-# 项目存放路径（默认 ~/Project）。
+# 项目在磁盘上的存放路径（默认 ~/Project）。
+# 所有 clone/init/sync 操作都发生在此目录下。
 project_dir: ~/Project
 
-# 默认树形视图中显示哪些分类。
+# 默认 `proj` 树形视图中显示哪些分类。
+# 不在列表中的分类会被隐藏，除非加 `-a` 参数。
 visible_categories: [develop, stable, uncategorized]
 
-# 设为 true 后，裸 proj 始终进入 fzf 交互模式。
+# 设为 true 后，裸 `proj` 始终进入 fzf 交互模式。
+# false（默认）时，`proj` 显示分类树形列表。
 use_fzf: false
+
+# `proj rm <name>` 的目标分类（默认：removed）。
+rm_to: removed
+
+# `proj init <name>` 的目标分类（默认：develop）。
+init_to: develop
+
+# `proj clone <url>` 的目标分类（默认：uncategorized）。
+clone_to: uncategorized
+
+# `proj sync` 发现新目录时分配的分类（默认：uncategorized）。
+sync_new_to: uncategorized
+
+# `proj sync` 发现磁盘上已消失的目录时分配的分类（默认：removed）。
+sync_missing_to: removed
 ```
 
 ### 默认分类路由
 
-| 操作 | 分类 |
-|------|------|
-| `proj init` | `develop` |
-| `proj clone` | `uncategorized` |
-| `proj rm` | `removed` |
-| `proj sync` 新目录 | `uncategorized` |
-| `proj sync` 缺失目录 | `removed` |
+以上路由字段控制 `proj` 如何自动分类项目：
+
+| 操作/事件 | 默认分类 | 可通过配置项 |
+|-----------|----------|-------------|
+| `proj init` | `develop` | `init_to` |
+| `proj clone` | `uncategorized` | `clone_to` |
+| `proj rm` | `removed` | `rm_to` |
+| `proj sync` — 发现新目录 | `uncategorized` | `sync_new_to` |
+| `proj sync` — 目录已消失 | `removed` | `sync_missing_to` |
+
+### 旧版迁移
+
+旧版本使用 `cat_visible` 映射字段。如果存在，`proj` 会在读取时自动迁移为新的 `visible_categories` 列表。
+
+## 数据存储
+
+proj 在 `~/.config/proj/` 下维护两个文件：
+
+| 文件 | 格式 | 用途 |
+|------|------|------|
+| `config.yaml` | YAML（键值对） | 配置项 — 项目目录、可见分类、路由默认值 |
+| `projects.yaml` | YAML（扁平映射） | 项目注册表 — `项目名: 分类` 条目，每行一条 |
+
+**projects 文件**是分类的事实来源。`proj sync` 将其与 `project_dir`（默认 `~/Project/`）下的实际目录进行比对，根据配置的路由规则添加新条目、标记缺失条目。`proj edit` 命令直接打开此文件供批量编辑。
 
 ## Credits
 
 灵感来自 [pass](https://www.passwordstore.org/)，标准的 Unix 密码管理器。
+
+[fzf](https://github.com/junegunn/fzf) — 通用命令行模糊搜索工具 — 为 fzf 模式提供交互式选择器。
 
 ## 许可证
 
