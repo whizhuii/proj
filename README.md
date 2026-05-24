@@ -7,6 +7,8 @@
   Manage your coding project directories with categories, fuzzy search, and one-key cd.
 </p>
 
+English | [中文](README.zh.md)
+
 ## What is proj?
 
 Your `~/Project/` fills up fast — repos, tools, experiments, side projects. Soon you have 50+ directories and no easy way to:
@@ -48,7 +50,7 @@ git clone https://github.com/whizhuii/proj && make build && make install
 
 Requires **git** (for `proj clone` / `proj init`). **fzf** is optional but recommended for interactive mode.
 
-> The `eval "$(proj-core shell func)"` line defines the `proj()` shell function, which is required because a binary cannot change the parent shell's working directory — only the function can `cd` on your behalf.
+> The `eval "$(proj-core shell func)"` line defines the `proj()` shell function, which is required because a binary cannot change the parent shell's working directory — only the function can `cd` on your behalf. See [Architecture](#architecture).
 
 ## Two modes
 
@@ -194,6 +196,27 @@ proj maintains two files under `~/.config/proj/`:
 | `projects.yaml` | YAML (flat map) | Project registry — `project_name: category` entries, one per line |
 
 The **projects file** is the source of truth for categorization. `proj sync` reconciles it against the actual directories under `project_dir` (`~/Project/` by default), adding new entries and marking missing ones according to the configured routing rules. The `proj edit` command opens this file directly for bulk changes.
+
+## Architecture
+
+proj is split into two layers — a **backend binary** and a **frontend shell function** — working together to deliver the one-key `cd` experience.
+
+| Layer | What | Where |
+|-------|------|-------|
+| **Backend** | `proj-core` binary | Written in Rust. Handles all data: reading/writing YAML config & project registry, git operations, sync, rename. Outputs flat text for the frontend. |
+| **Frontend** | `proj()` shell function | Defined by `eval "$(proj-core shell func)"` in `.zshrc`/`.bashrc`. Calls `proj-core list --flat`, pipes through `fzf`, then **`cd`s into the selected directory**. |
+
+**Why two layers?** A binary running as a child process cannot change its parent shell's working directory — that would be a security violation. The shell function runs in-process with your terminal, so it can `cd`. The binary does all the heavy lifting (listing, filtering, matching), prints the result to stdout, and the function captures it and calls `cd`.
+
+The complete data flow for `proj blog` is:
+
+```
+You type "proj blog"
+  → proj() calls "proj-core list --flat" and pipes through fzf
+    → proj-core reads projects.yaml, filters, prints matching paths to stdout
+  → proj() captures the resulting path
+  → cd ~/Project/blog          ← this is why we need a shell function
+```
 
 ## Credits
 

@@ -7,6 +7,8 @@
   用分类、模糊搜索和一键 cd 来管理你的 coding 项目目录。
 </p>
 
+[English](README.md) | 中文
+
 ## 这工具是干嘛的？
 
 `~/Project/` 越堆越多——仓库、工具、实验代码、side project。50 个目录之后你就很难：
@@ -48,7 +50,7 @@ git clone https://github.com/whizhuii/proj && make build && make install
 
 需要 **git**（`proj clone` / `proj init` 需要）。**fzf** 可选但推荐，用于交互模式。
 
-> `eval "$(proj-core shell func)"` 定义 `proj()` shell 函数，这是必需的——二进制程序无法改变父进程的当前目录，只有 shell 函数能代你执行 `cd`。
+> `eval "$(proj-core shell func)"` 定义 `proj()` shell 函数，这是必需的——二进制程序无法改变父进程的当前目录，只有 shell 函数能代你执行 `cd`。参见[架构](#架构)。
 
 ## 两种模式
 
@@ -194,6 +196,27 @@ proj 在 `~/.config/proj/` 下维护两个文件：
 | `projects.yaml` | YAML（扁平映射） | 项目注册表 — `项目名: 分类` 条目，每行一条 |
 
 **projects 文件**是分类的事实来源。`proj sync` 将其与 `project_dir`（默认 `~/Project/`）下的实际目录进行比对，根据配置的路由规则添加新条目、标记缺失条目。`proj edit` 命令直接打开此文件供批量编辑。
+
+## 架构
+
+proj 分为两层——**后端二进制**与**前端 shell 函数**——协同实现一键 `cd`。
+
+| 层 | 是什么 | 职责 |
+|----|--------|------|
+| **后端** | `proj-core` 二进制 | Rust 编写。处理所有数据：读写 YAML 配置及项目注册表、git 操作、同步、重命名。输出纯文本供前端使用。 |
+| **前端** | `proj()` shell 函数 | 由 `eval "$(proj-core shell func)"` 定义，置于 `.zshrc`/`.bashrc`。调用 `proj-core list --flat`，经 `fzf` 过滤后，**`cd` 到所选目录**。 |
+
+**为什么分两层？** 子进程无法改变父 shell 的当前工作目录——这是安全限制。shell 函数与终端运行在同一进程中，因此可以执行 `cd`。二进制负责所有重活（列表、过滤、匹配），将结果输出到 stdout，函数捕获后执行 `cd`。
+
+`proj blog` 的完整数据流：
+
+```
+输入 "proj blog"
+  → proj() 调用 "proj-core list --flat" 经 fzf 过滤
+    → proj-core 读取 projects.yaml，过滤，将匹配路径输出到 stdout
+  → proj() 捕获结果路径
+  → cd ~/Project/blog          ← 这就是为什么需要 shell 函数
+```
 
 ## Credits
 
