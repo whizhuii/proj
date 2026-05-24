@@ -1,11 +1,12 @@
-# proj
-
-Not project management. Project directory management.
-
-Manage your coding project directories with categories, fuzzy search, and one-key cd.
-
 <p align="center">
   <img src="logo.svg" alt="proj" width="160">
+</p>
+
+<h1 align="center">proj</h1>
+
+<p align="center">
+  Not project management. Project directory management.<br>
+  Manage your coding project directories with categories, fuzzy search, and one-key cd.
 </p>
 
 ## What is proj?
