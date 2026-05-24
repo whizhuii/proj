@@ -1106,12 +1106,12 @@ _proj() {
         (( $#cats )) && _describe 'category' cats
         ;;
       go|rm)
-        projs=("${(@f)$(proj-core list --names 2>/dev/null)}")
+        projs=("${(@f)$(proj-core list --names --all 2>/dev/null)}")
         (( $#projs )) && _describe 'project' projs
         ;;
       mv)
         if (( CURRENT == 2 )); then
-          projs=("${(@f)$(proj-core list --names 2>/dev/null)}")
+          projs=("${(@f)$(proj-core list --names --all 2>/dev/null)}")
           (( $#projs )) && _describe 'project' projs
         else
           cats=("${(@f)$(proj-core categories 2>/dev/null)}")
@@ -1123,13 +1123,13 @@ _proj() {
           cats=("${(@f)$(proj-core categories 2>/dev/null)}")
           (( $#cats )) && _describe 'category' cats
         else
-          projs=("${(@f)$(proj-core list --names 2>/dev/null)}")
+          projs=("${(@f)$(proj-core list --names --all 2>/dev/null)}")
           (( $#projs )) && _describe 'project' projs
         fi
         ;;
       rename)
         if (( CURRENT == 2 )); then
-          projs=("${(@f)$(proj-core list --names 2>/dev/null)}")
+          projs=("${(@f)$(proj-core list --names --all 2>/dev/null)}")
           (( $#projs )) && _describe 'project' projs
         fi
         ;;
@@ -1187,11 +1187,11 @@ const PROJ_BASH_COMPLETION: &str = r#"_proj() {
       COMPREPLY=($(compgen -W "$(proj-core categories 2>/dev/null)" -- "$cur"))
       ;;
     go|rm)
-      COMPREPLY=($(compgen -W "$(proj-core list --names 2>/dev/null)" -- "$cur"))
+      COMPREPLY=($(compgen -W "$(proj-core list --names --all 2>/dev/null)" -- "$cur"))
       ;;
     mv)
       if [[ $COMP_CWORD -eq 2 ]]; then
-        COMPREPLY=($(compgen -W "$(proj-core list --names 2>/dev/null)" -- "$cur"))
+        COMPREPLY=($(compgen -W "$(proj-core list --names --all 2>/dev/null)" -- "$cur"))
       else
         COMPREPLY=($(compgen -W "$(proj-core categories 2>/dev/null)" -- "$cur"))
       fi
@@ -1200,12 +1200,12 @@ const PROJ_BASH_COMPLETION: &str = r#"_proj() {
       if [[ $COMP_CWORD -eq 2 ]]; then
         COMPREPLY=($(compgen -W "$(proj-core categories 2>/dev/null)" -- "$cur"))
       else
-        COMPREPLY=($(compgen -W "$(proj-core list --names 2>/dev/null)" -- "$cur"))
+        COMPREPLY=($(compgen -W "$(proj-core list --names --all 2>/dev/null)" -- "$cur"))
       fi
       ;;
     rename)
       if [[ $COMP_CWORD -eq 2 ]]; then
-        COMPREPLY=($(compgen -W "$(proj-core list --names 2>/dev/null)" -- "$cur"))
+        COMPREPLY=($(compgen -W "$(proj-core list --names --all 2>/dev/null)" -- "$cur"))
       fi
       ;;
     clone|init)
