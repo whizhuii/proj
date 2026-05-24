@@ -7,7 +7,7 @@
   Manage your coding project directories with categories, fuzzy search, and one-key cd.
 </p>
 
-English | [中文](README.zh.md)
+<p align="center">English | <a href="README.zh.md">中文</a></p>
 
 ## What is proj?
 

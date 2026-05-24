@@ -7,7 +7,7 @@
   用分类、模糊搜索和一键 cd 来管理你的 coding 项目目录。
 </p>
 
-[English](README.md) | 中文
+<p align="center"><a href="README.md">English</a> | 中文</p>
 
 ## 这工具是干嘛的？
 
