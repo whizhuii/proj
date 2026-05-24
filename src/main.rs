@@ -29,6 +29,8 @@ struct Config {
     visible_categories: Vec<String>,
     #[serde(default)]
     use_fzf: bool,
+    #[serde(default)]
+    no_git: bool,
     #[serde(default = "default_project_dir")]
     project_dir: String,
 }
@@ -78,6 +80,7 @@ impl Default for Config {
             sync_missing_to: "removed".to_string(),
             visible_categories: default_visible_categories(),
             use_fzf: false,
+            no_git: false,
             project_dir: default_project_dir(),
         }
     }
@@ -387,6 +390,23 @@ fn main() {
             ShellCommand::Func => cmd_shell_func(),
             ShellCommand::Completion { mode } => cmd_shell_completion(mode),
         },
+    }
+}
+
+fn try_git_init(dir: &std::path::Path, no_git: bool) {
+    if no_git {
+        return;
+    }
+    if Command::new("git").arg("--version").output().is_err() {
+        eprintln!("Warning: git not found, skipping git init");
+        return;
+    }
+    let status = Command::new("git")
+        .args(["init", &dir.to_string_lossy()])
+        .status()
+        .expect("Failed to run git");
+    if !status.success() {
+        eprintln!("Warning: git init failed");
     }
 }
 
@@ -900,15 +920,7 @@ fn cmd_init(name: &str, to: Option<&str>) {
 
     fs::create_dir_all(&dest).expect("Failed to create project directory");
 
-    let status = Command::new("git")
-        .args(["init", &dest.to_string_lossy()])
-        .status()
-        .expect("Failed to run git (is git installed?)");
-
-    if !status.success() {
-        eprintln!("Error: git init failed");
-        std::process::exit(1);
-    }
+    try_git_init(&dest, settings.no_git);
 
     let mut projects = read_projects();
     projects.insert(name.to_string(), to.to_string());
@@ -986,6 +998,7 @@ fn cmd_config(yaml: bool, example: bool, fzf: bool, project_dir: bool) {
         println!("sync_new_to:     {}", settings.sync_new_to);
         println!("sync_missing_to: {}", settings.sync_missing_to);
         println!("use_fzf:         {}", settings.use_fzf);
+        println!("no_git:          {}", settings.no_git);
         println!("project_dir:     {}", settings.project_dir);
         if !settings.visible_categories.is_empty() {
             println!("visible_categories: [{}]", settings.visible_categories.join(", "));
@@ -1035,6 +1048,11 @@ sync_missing_to: removed
 # Set true to always use fzf interactive picker on bare `proj`.
 # Falls back to tree view if fzf is not installed.
 use_fzf: false
+
+# --- Git ---
+# Set true to skip git init on `proj init` (e.g. when git is not installed).
+# Default: false (git init is performed on every new project).
+# no_git: true
 
 # --- Project root ---
 # Directory where all projects live. Default: ~/Project.
