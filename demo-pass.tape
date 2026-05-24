@@ -28,5 +28,5 @@ Sleep 2.5s
 
 Type "clear" Enter
 Sleep 300ms
-Type "proj find cli" Enter
+Type "proj find mycli" Enter
 Sleep 2.5s

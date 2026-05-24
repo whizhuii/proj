@@ -20,15 +20,14 @@ Show
 Type "clear" Enter
 Sleep 300ms
 
-Type "proj" Sleep 500ms Enter
-Sleep 1s
-Type "bl" Sleep 1.5s
+Type "proj" Enter
+Sleep 2s
+Type "my" Sleep 2s
 Enter
-Sleep 1.5s
+Sleep 2s
 
 Type "pwd" Enter
 Sleep 2s
 
 Hide
 Type "sed -i s/use_fzf: true/use_fzf: false/ $XDG_CONFIG_HOME/proj/config.yaml" Enter
-Sleep 200ms
