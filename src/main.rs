@@ -31,8 +31,6 @@ struct Config {
     use_fzf: bool,
     #[serde(default = "default_project_dir")]
     project_dir: String,
-    #[serde(default = "default_categories")]
-    categories: Vec<String>,
 }
 
 fn default_project_dir() -> String {
@@ -81,7 +79,6 @@ impl Default for Config {
             visible_categories: default_visible_categories(),
             use_fzf: false,
             project_dir: default_project_dir(),
-            categories: default_categories(),
         }
     }
 }
@@ -90,10 +87,6 @@ impl Config {
     fn is_category_visible(&self, cat: &str) -> bool {
         self.visible_categories.is_empty()
             || self.visible_categories.iter().any(|c| c == cat)
-    }
-
-    fn has_category(&self, cat: &str) -> bool {
-        self.categories.iter().any(|c| c == cat)
     }
 }
 
@@ -206,6 +199,29 @@ fn write_projects(projects: &Projects) {
     }
     let content = serde_yaml::to_string(projects).expect("Failed to serialize");
     fs::write(&path, content).expect("Failed to write config");
+}
+
+fn categories_path() -> PathBuf {
+    let base = dirs::config_dir().unwrap_or_else(|| {
+        let home = dirs::home_dir().expect("Cannot find home directory");
+        home.join(".config")
+    });
+    base.join("proj").join("categories.yaml")
+}
+
+fn read_categories() -> Vec<String> {
+    let path = categories_path();
+    if !path.exists() {
+        let cats = default_categories();
+        if let Some(parent) = path.parent() {
+            let _ = fs::create_dir_all(parent);
+        }
+        let yaml = serde_yaml::to_string(&cats).expect("Failed to serialize categories");
+        let _ = fs::write(&path, yaml);
+        return cats;
+    }
+    let content = fs::read_to_string(&path).unwrap_or_default();
+    serde_yaml::from_str(&content).unwrap_or_default()
 }
 
 fn repo_name_from_url(url: &str) -> String {
@@ -625,12 +641,12 @@ fn cmd_mv(name: &str, category: &str) {
         std::process::exit(1);
     }
 
-    if !settings.has_category(category) {
+    if !read_categories().contains(&category.to_string()) {
         eprintln!(
-            "Error: '{}' is not a registered category.\nRegistered categories: {}",
+            "Error: '{}' is not a registered category.",
             category,
-            settings.categories.join(", "),
         );
+        eprintln!("Registered categories: {}", known_categories().into_iter().collect::<Vec<_>>().join(", "));
         std::process::exit(1);
     }
 
@@ -687,12 +703,10 @@ fn cmd_mvt(category: &str, names: &[String]) {
     let mut projects = read_projects();
     let mut moved = 0;
 
-    if !settings.has_category(category) {
-        eprintln!(
-            "Error: '{}' is not a registered category.\nRegistered categories: {}",
-            category,
-            settings.categories.join(", "),
-        );
+    let cats = read_categories();
+    if !cats.contains(&category.to_string()) {
+        eprintln!("Error: '{}' is not a registered category.", category);
+        eprintln!("Registered categories: {}", cats.join(", "));
         std::process::exit(1);
     }
 
@@ -723,12 +737,10 @@ fn cmd_clone(url: &str, to: Option<&str>, git_args: &[String]) {
     let settings = read_settings();
     let to = to.unwrap_or(&settings.clone_to);
 
-    if !settings.has_category(to) {
-        eprintln!(
-            "Error: '{}' is not a registered category.\nRegistered categories: {}",
-            to,
-            settings.categories.join(", "),
-        );
+    let cats = read_categories();
+    if !cats.contains(&to.to_string()) {
+        eprintln!("Error: '{}' is not a registered category.", to);
+        eprintln!("Registered categories: {}", cats.join(", "));
         std::process::exit(1);
     }
 
@@ -806,15 +818,11 @@ fn cmd_edit() {
     };
 
     // Validate all categories are registered
-    let settings = read_settings();
+    let cats = read_categories();
     for (name, cat) in &new_projects {
-        if !settings.has_category(cat) {
-            eprintln!(
-                "Error: project '{}' has unregistered category '{}'.\nRegistered categories: {}",
-                name,
-                cat,
-                settings.categories.join(", "),
-            );
+        if !cats.contains(cat) {
+            eprintln!("Error: project '{}' has unregistered category '{}'.", name, cat);
+            eprintln!("Registered categories: {}", cats.join(", "));
             std::process::exit(1);
         }
     }
@@ -866,12 +874,10 @@ fn cmd_init(name: &str, to: Option<&str>) {
     let settings = read_settings();
     let to = to.unwrap_or(&settings.init_to);
 
-    if !settings.has_category(to) {
-        eprintln!(
-            "Error: '{}' is not a registered category.\nRegistered categories: {}",
-            to,
-            settings.categories.join(", "),
-        );
+    let cats = read_categories();
+    if !cats.contains(&to.to_string()) {
+        eprintln!("Error: '{}' is not a registered category.", to);
+        eprintln!("Registered categories: {}", cats.join(", "));
         std::process::exit(1);
     }
 
@@ -944,8 +950,7 @@ fn cmd_find(query: &str) {
 }
 
 fn known_categories() -> BTreeSet<String> {
-    let settings = read_settings();
-    settings.categories.iter().cloned().collect()
+    read_categories().into_iter().collect()
 }
 
 fn cmd_config(yaml: bool, example: bool, fzf: bool, project_dir: bool) {
@@ -975,8 +980,9 @@ fn cmd_config(yaml: bool, example: bool, fzf: bool, project_dir: bool) {
         if !settings.visible_categories.is_empty() {
             println!("visible_categories: [{}]", settings.visible_categories.join(", "));
         }
-        if !settings.categories.is_empty() {
-            println!("categories:        [{}]", settings.categories.join(", "));
+        let cats = read_categories();
+        if !cats.is_empty() {
+            println!("categories:        [{}]", cats.join(", "));
         }
     }
 }
@@ -998,7 +1004,7 @@ const CONFIG_EXAMPLE: &str = r#"# ==============================================
 
 # --- 分类路由 ---
 # 以下字段指定各种操作的目标分类名称。
-# 分类必须是 categories 列表中已注册的。常见值：stable / develop / dormant / archived / removed / uncategorized。
+# 分类必须是 categories.yaml 中注册的。常见值：stable / develop / dormant / archived / removed / uncategorized。
 
 # rm_to: proj rm <project> 将项目移到的分类（删除）
 rm_to: removed
@@ -1038,18 +1044,6 @@ visible_categories:
   - develop
   - stable
   - uncategorized
-
-# --- 已注册分类列表 ---
-# categories 列出所有已注册的分类名称。
-# proj mv / init / clone 等命令仅接受此列表中的分类。
-# 如需添加新分类，在此列表中追加即可。
-# categories:
-#   - develop
-#   - stable
-#   - uncategorized
-#   - dormant
-#   - archived
-#   - removed
 "#;
 
 const PROJ_SHELL: &str = r#"
