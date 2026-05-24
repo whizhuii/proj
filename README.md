@@ -4,9 +4,9 @@ Not project management. Project directory management.
 
 Manage your coding project directories with categories, fuzzy search, and one-key cd.
 
-![logo](logo.svg)
-
-![proj demo](demo.gif)
+<p align="center">
+  <img src="logo.svg" alt="proj" width="160">
+</p>
 
 ## What is proj?
 
@@ -45,12 +45,32 @@ git clone https://github.com/whizhuii/proj && make build && make install
 
 Requires **git** (for `proj clone` / `proj init`). **fzf** is optional but recommended for interactive mode.
 
-## Daily workflow
+## Two modes
+
+proj has two control modes toggled by the `use_fzf` setting.
+
+### Pass mode (default) · `use_fzf: false`
+
+`proj` shows a categorized tree. Type `proj <query>` to jump directly to a project.
+
+![Pass mode tree view](demo-pass.gif)
+
+### Fzf mode · `use_fzf: true`
+
+`proj` opens a fuzzy picker. Type to filter, press Enter to cd.
+
+![Fzf mode interactive picker](demo-fzf.gif)
+
+## Subcommands
+
+Beyond navigation, proj handles synchronization, categorization, and configuration.
+
+![Subcommands: sync go mv config](demo-cmd.gif)
 
 ### Navigate
 
 ```
-proj                      Interactive fzf picker — type to filter, Enter to cd
+proj                      Interactive picker or tree view
 proj blog                 Fuzzy match + cd into first result
 proj -a                   Show all categories (bypass visibility filter)
 proj go my-project        Print the absolute path (useful in scripts)
