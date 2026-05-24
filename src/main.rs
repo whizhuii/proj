@@ -9,6 +9,15 @@ use std::process::Command;
 
 type Projects = BTreeMap<String, String>;
 
+fn display_path(path: &PathBuf) -> String {
+    if let Some(home) = dirs::home_dir() {
+        if let Ok(rest) = path.strip_prefix(&home) {
+            return format!("~/{}{}", rest.display(), if path.is_dir() { "/" } else { "" });
+        }
+    }
+    path.display().to_string()
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 struct Config {
     rm_to: String,
@@ -141,7 +150,11 @@ fn projects_path() -> PathBuf {
 
 fn project_root() -> PathBuf {
     let settings = read_settings();
-    PathBuf::from(settings.project_dir)
+    let path = PathBuf::from(settings.project_dir);
+    if !path.exists() {
+        fs::create_dir_all(&path).expect("Failed to create project directory");
+    }
+    path
 }
 
 fn read_projects() -> Projects {
@@ -337,7 +350,7 @@ fn cmd_sync() {
     let entries = match fs::read_dir(&root) {
         Ok(e) => e,
         Err(e) => {
-            eprintln!("Error: cannot read {}: {}", root.display(), e);
+            eprintln!("Error: cannot read {}: {}", display_path(&root), e);
             std::process::exit(1);
         }
     };
@@ -867,7 +880,7 @@ fn cmd_config(yaml: bool, example: bool, fzf: bool, project_dir: bool) {
         return;
     }
     if project_dir {
-        println!("{}", project_root().display());
+        println!("{}", display_path(&project_root()));
         return;
     }
     if example {
