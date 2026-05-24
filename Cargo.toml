@@ -1,6 +1,6 @@
 [package]
 name = "proj-core"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 description = "Manage your coding project directories with categories, fuzzy search, and one-key cd."
 license = "MIT"
