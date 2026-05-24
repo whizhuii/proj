@@ -1005,47 +1005,47 @@ fn cmd_categories() {
 }
 
 const CONFIG_EXAMPLE: &str = r#"# ============================================================
-# proj 配置文件
-# 路径: ~/.config/proj/config.yaml
+# proj configuration file
+# Location: ~/.config/proj/config.yaml
 #
-# 首次运行 proj 时自动生成此文件。
-# 修改后保存即可，无需重启，下次命令自动读取。
+# Auto-generated on first run. Edits take effect immediately — no restart needed.
 # ============================================================
 
-# --- 分类路由 ---
-# 以下字段指定各种操作的目标分类名称。
-# 分类必须是 categories.yaml 中注册的。常见值：stable / develop / dormant / archived / removed / uncategorized。
+# --- Category routing ---
+# These fields set the default category for each operation.
+# Category names must be registered in categories.yaml.
+# Common values: stable / develop / dormant / archived / removed / uncategorized.
 
-# rm_to: proj rm <project> 将项目移到的分类（删除）
+# rm_to: category for proj rm <project> (deletion target)
 rm_to: removed
 
-# init_to: proj init <name> 创建项目时的默认分类
+# init_to: default category for proj init <name>
 init_to: develop
 
-# clone_to: proj clone <url> 克隆仓库时的默认分类
+# clone_to: default category for proj clone <url>
 clone_to: uncategorized
 
-# sync_new_to: proj sync 发现磁盘新目录时的默认分类
+# sync_new_to: category assigned to newly discovered directories on sync
 sync_new_to: uncategorized
 
-# sync_missing_to: proj sync 发现目录已消失时的目标分类
+# sync_missing_to: category assigned when a directory disappears from disk
 sync_missing_to: removed
 
-# --- 交互模式 ---
-# use_fzf: 设为 true 后，proj（无参数）将使用 fzf 交互式选择代替默认的树形列表。
-# 如果 fzf 未安装，会输出警告并回退到树形列表。
+# --- Interactive mode ---
+# Set true to always use fzf interactive picker on bare `proj`.
+# Falls back to tree view if fzf is not installed.
 use_fzf: false
 
-# --- 项目根路径 ---
-# 项目目录存放路径，默认 ~/Project。
+# --- Project root ---
+# Directory where all projects live. Default: ~/Project.
 # project_dir: ~/Project
 
-# --- 分类白名单（可选）---
-# visible_categories 列出在默认 fzf 交互中可见的分类。
-# 空列表 = 不过滤（显示全量）。
-# proj -a / --all 可绕过白名单，显示全部分类。
+# --- Visibility filter (optional) ---
+# visible_categories lists which categories appear in the default tree view.
+# Empty list = show all (no filtering).
+# Use proj -a / --all to bypass the filter.
 #
-# 示例：
+# Example:
 # visible_categories:
 #   - develop
 #   - stable
