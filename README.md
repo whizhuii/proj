@@ -72,6 +72,8 @@ proj has two control modes toggled by the `use_fzf` setting.
 
 Beyond navigation, proj handles synchronization, categorization, and configuration.
 
+![init, mv, visibility filter demo](demo-cmd.gif)
+
 ### Navigate
 
 ```
