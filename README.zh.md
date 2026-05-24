@@ -27,7 +27,7 @@ curl -fsSL https://raw.githubusercontent.com/whizhuii/proj/main/install.sh | sh
 
 # 添加到 ~/.zshrc 或 ~/.bashrc（eval 方式确保函数始终最新）
 eval "$(proj-core shell func)"
-eval "$(proj-core shell completion --shell zsh)"   # 或 --shell bash
+eval "$(proj-core shell completion --mode zsh)"   # 或 --mode bash
 
 # 注册已有目录
 proj sync

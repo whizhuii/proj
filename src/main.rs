@@ -268,30 +268,32 @@ enum Commands {
     },
     /// List all known categories
     Categories,
-    /// Output shell function or completion for eval
+    /// Output shell function for eval
     Shell {
         #[command(subcommand)]
         command: ShellCommand,
     },
-    /// Output proj completion (for ZIM/compinit)
-    Completion,
 }
-
+                        
 #[derive(Subcommand)]
 enum ShellCommand {
     /// Output shell function (bash/zsh compatible)
     Func,
-    /// Output completion (default: zsh, use --shell bash for bash)
+    /// Output completion (--mode zsh/zim/bash, default: zsh)
     Completion {
-        #[arg(long, value_enum, default_value_t = ShellVariant::Zsh)]
-        shell: ShellVariant,
+        #[arg(long, value_enum, default_value_t = ShellMode::Zsh)]
+        mode: ShellMode,
     },
 }
 
 #[derive(clap::ValueEnum, Clone)]
-enum ShellVariant {
-    Bash,
+enum ShellMode {
+    /// zsh eval mode (ends with compdef _proj proj)
     Zsh,
+    /// ZIM autoload mode (ends with _proj)
+    Zim,
+    /// bash mode
+    Bash,
 }
 
 fn main() {
@@ -321,9 +323,8 @@ fn main() {
         Commands::Categories => cmd_categories(),
         Commands::Shell { command } => match command {
             ShellCommand::Func => cmd_shell_func(),
-            ShellCommand::Completion { shell } => cmd_shell_completion(shell),
+            ShellCommand::Completion { mode } => cmd_shell_completion(mode),
         },
-        Commands::Completion => cmd_completion(),
     }
 }
 
@@ -1167,8 +1168,6 @@ _proj() {
     (( $#all )) && _describe -t projects 'project' all
   fi
 }
-
-_proj
 "#;
 
 
@@ -1221,18 +1220,19 @@ fn cmd_shell_func() {
     print!("{}", PROJ_SHELL.trim_start());
 }
 
-fn cmd_shell_completion(shell: ShellVariant) {
-    match shell {
-        ShellVariant::Zsh => print!("{}", PROJ_ZSH_COMPLETION.trim_start()),
-        ShellVariant::Bash => print!("{}", PROJ_BASH_COMPLETION.trim_start()),
+fn cmd_shell_completion(mode: ShellMode) {
+    match mode {
+        ShellMode::Zsh => {
+            print!("{}", PROJ_ZSH_COMPLETION.trim_start());
+            println!("\ncompdef _proj proj");
+        }
+        ShellMode::Zim => {
+            print!("{}", PROJ_ZSH_COMPLETION.trim_start());
+            println!("\n_proj");
+        }
+        ShellMode::Bash => print!("{}", PROJ_BASH_COMPLETION.trim_start()),
     }
-}
-
-fn cmd_completion() {
-    print!("{}", PROJ_ZSH_COMPLETION.trim_start());
-}
-
-#[cfg(test)]
+}#[cfg(test)]
 mod tests {
     use super::*;
 

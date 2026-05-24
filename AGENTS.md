@@ -6,7 +6,7 @@
 make build        # cargo build --release
 make install      # cp + strip → ~/.local/bin/proj-core
 make uninstall
-make zim-install  # ZIM 补全 → ~/.zim/modules/completion/functions/_proj
+make zim-install  # ZIM 补全 → ~/.zim/modules/completion/functions/_proj（调用 shell completion --mode zim）
 ```
 
 改代码后：`make install`（自带 strip）。
@@ -14,8 +14,8 @@ make zim-install  # ZIM 补全 → ~/.zim/modules/completion/functions/_proj
 `.zshrc` / `.bashrc` 集成：
 ```sh
 eval "$(proj-core shell func)"                   # 定义 proj()（bash/zsh 通用）
-eval "$(proj-core shell completion --shell zsh)" # zsh 补全
-eval "$(proj-core shell completion --shell bash)" # bash 补全
+eval "$(proj-core shell completion --mode zsh)" # zsh 补全
+eval "$(proj-core shell completion --mode bash)" # bash 补全
 # 或：make zim-install（仅 zsh）
 ```
 
@@ -31,7 +31,7 @@ eval "$(proj-core shell completion --shell bash)" # bash 补全
 - 项目目录：由 Config `project_dir` 决定（默认 `~/Project`）。
 - Shell 函数 `proj()` 和补全函数（zsh + bash）**以 Rust 字符串常量内嵌在 `src/main.rs` 中**，通过 `proj-core shell func`/`completion` 输出。
   - `shell func` — bash/zsh 通用
-  - `shell completion` — 默认 zsh，`--shell bash` 输出 bash 补全
+  - `shell completion` — 默认 zsh（`--mode zsh` eval 模式），`--mode bash` 输出 bash 补全，`--mode zim` 输出 ZIM autoload 格式
 - `proj()` 封装 `proj-core list --flat` + `fzf`，默认受白名单约束，`-a` 绕过滤。
 - 二进制本身**从不 `cd`**（子进程无法改变父进程 cwd），由 shell 函数捕获该副作用。
 - 测试：`#[cfg(test)]` 内嵌在 `src/main.rs`，`cargo test` 运行（15 个用例）。

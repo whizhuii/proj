@@ -27,7 +27,7 @@ curl -fsSL https://raw.githubusercontent.com/whizhuii/proj/main/install.sh | sh
 
 # Add to ~/.zshrc or ~/.bashrc (eval lines keep the function up-to-date)
 eval "$(proj-core shell func)"
-eval "$(proj-core shell completion --shell zsh)"   # or --shell bash
+eval "$(proj-core shell completion --mode zsh)"   # or --mode bash
 
 # Register existing directories
 proj sync
