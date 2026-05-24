@@ -1,0 +1,16 @@
+[package]
+name = "proj-core"
+version = "0.1.0"
+edition = "2021"
+description = "Manage your coding project directories with categories, fuzzy search, and one-key cd."
+license = "MIT"
+repository = "https://github.com/whizhuii/proj"
+keywords = ["project", "manager", "fzf", "cli", "organizer"]
+categories = ["command-line-utilities", "development-tools"]
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+colored = "2"
+serde = { version = "1", features = ["derive"] }
+serde_yaml = "0.9"
+dirs = "6"
