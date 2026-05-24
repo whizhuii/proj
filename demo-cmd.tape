@@ -9,12 +9,6 @@ Set Theme "Catppuccin Mocha"
 Set TypingSpeed 30ms
 Set Padding 15
 
-Hide
-Sleep 10ms
-Type "export XDG_CONFIG_HOME=/tmp/proj-demo-config" Enter
-Sleep 300ms
-Show
-
 Type "clear" Enter
 Sleep 300ms
 Type "proj sync" Enter
