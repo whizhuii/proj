@@ -23,7 +23,7 @@ install: $(TARGET)
 
 zim-install:
 	mkdir -p $(ZIMDIR)
-	$(BINDIR)/$(BINARY) shell completion proj > $(ZIMDIR)/_proj
+	$(BINDIR)/$(BINARY) completion > $(ZIMDIR)/_proj
 	@echo "Installed completion to $(ZIMDIR)/_proj"
 	@echo "Restart shell or run: exec zsh"
 

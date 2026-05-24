@@ -209,6 +209,23 @@ Data flow depends on the active mode:
 - **Pass mode** (`use_fzf: false`): `proj <query>` → backend does case-insensitive substring match → prints the path → function `cd`s.
 - **Fzf mode** (`use_fzf: true`): `proj` → backend prints all paths → piped through `fzf` for interactive filtering → user selects → function `cd`s.
 
+## Safety
+
+proj **never deletes your files**. It only manages the YAML catalog (`projects.yaml`).
+
+Every operation preserves disk directories:
+
+- `proj rm <name>` — re-categorizes the project to `removed` in the catalog. The directory stays on disk.
+- `proj prune` — removes catalog entries that are already categorized as `removed` **and** whose disk directory no longer exists. Never touches existing directories.
+
+**To actually delete a project from disk**, you must do it manually:
+
+```sh
+proj rm my-project          # mark as removed in catalog
+rm -rf ~/Project/my-project # delete from disk
+proj prune                  # clean up the catalog entry
+```
+
 ## Credits
 
 - [pass](https://www.passwordstore.org/) — the standard Unix password manager, which inspired proj's two-mode design

@@ -209,6 +209,23 @@ proj 分为两层——**后端二进制**与**前端 shell 函数**。
 - **Pass 模式**（`use_fzf: false`）：`proj <query>` → 后端做大小写不敏感子串匹配 → 输出路径 → 函数 `cd`。
 - **Fzf 模式**（`use_fzf: true`）：`proj` → 后端输出所有路径 → 经 `fzf` 交互过滤 → 用户选择 → 函数 `cd`。
 
+## 安全
+
+proj **从不删除你的文件**。它只管理 YAML 目录（`projects.yaml`）。
+
+所有操作都保留磁盘目录：
+
+- `proj rm <name>` — 将项目在目录中标记为 `removed` 分类。目录保留在磁盘上。
+- `proj prune` — 删除目录中分类为 `removed` **且**磁盘目录已不存在的条目。不会触碰现有目录。
+
+**如需从磁盘删除项目**，需手动操作：
+
+```sh
+proj rm my-project              # 在目录中标记为 removed
+rm -rf ~/Project/my-project     # 从磁盘删除
+proj prune                      # 清理目录条目
+```
+
 ## Credits
 
 - [pass](https://www.passwordstore.org/) — 标准 Unix 密码管理器，proj 双模式设计的灵感来源
