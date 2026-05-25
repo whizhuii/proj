@@ -26,6 +26,57 @@ detect_platform() {
     echo "${arch}-${os}"
 }
 
+write_config() {
+    local use_fzf="$1"
+    local config_dir="${HOME}/.config/proj"
+    local config_file="${config_dir}/config.yaml"
+
+    mkdir -p "${config_dir}"
+    cat > "${config_file}" <<-CONF
+rm_to: removed
+init_to: develop
+clone_to: uncategorized
+sync_new_to: uncategorized
+sync_missing_to: removed
+visible_categories:
+- develop
+- stable
+- uncategorized
+use_fzf: ${use_fzf}
+no_git: false
+project_dir: ~/Project
+CONF
+    donef "configured ~/.config/proj/config.yaml (use_fzf: ${use_fzf})"
+}
+
+configure_mode() {
+    local config_file="${HOME}/.config/proj/config.yaml"
+
+    if [[ -f "${config_file}" ]]; then
+        info "config already exists at ${config_file}, skipping mode setup"
+        info "edit it manually or delete it to re-run setup"
+        return
+    fi
+
+    if command -v fzf >/dev/null 2>&1; then
+        printf "\n  fzf detected. Use interactive picker mode (recommended)? [Y/n] "
+        read -r input
+        case "${input:-Y}" in
+            y|Y|yes|Yes|"")
+                write_config "true"
+                ;;
+            *)
+                write_config "false"
+                info "pass mode selected. you can switch later by setting use_fzf: true in config"
+                ;;
+        esac
+    else
+        warn "fzf not found — pass mode will be used (zero dependencies)"
+        info "install fzf later (https://github.com/junegunn/fzf) and set use_fzf: true in config"
+        write_config "false"
+    fi
+}
+
 # ---- main ----
 main() {
     echo ""
@@ -61,7 +112,10 @@ main() {
     rm -rf "${tmpdir}"
     donef "installed ${BINARY} to ${BINDIR}"
 
-    # 4. shell integration (rc files)
+    # 4. configure mode (fzf or pass)
+    configure_mode
+
+    # 5. shell integration (rc files)
     local rc_files=()
     for f in "$HOME/.zshrc" "$HOME/.bashrc" "$HOME/.bash_profile" "$HOME/.zprofile"; do
         [[ -f "$f" ]] && rc_files+=("$f")
@@ -132,13 +186,8 @@ RCEOF
         donef "added proj to ${rc}"
     done
 
-    if [[ ${#selected[@]} -gt 0 ]]; then
-        echo ""
-        info "Restart your shell or source the files above to apply changes."
-    fi
-
     echo ""
-    donef "proj is ready. Type: proj help"
+    donef "proj is ready. Run: exec \$SHELL -l"
     echo ""
 }
 

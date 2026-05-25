@@ -3,235 +3,172 @@
 </p>
 
 <p align="center">
-  Not project management. Project directory management.<br>
-  Manage your coding project directories with categories, fuzzy search, and one-key cd.
+  Organize your projects. Find them. Jump in one key.
 </p>
 
-<p align="center">English | <a href="README.zh.md">中文</a></p>
+---
 
-## What is proj?
+```
+  $ proj   →   fuzzy picker (type, filter, enter, cd)
+```
 
-Your `~/Project/` fills up fast — repos, tools, experiments, side projects. Soon you have 50+ directories and no easy way to:
+<p align="center">
+  <img src="demo/demo-fzf.gif" alt="Fzf mode demo" width="720">
+</p>
 
-- **Find** where that Go tool you wrote last year lives → `proj find tool`
-- **Jump** into a project without typing the full path → `proj blog` drops you in `~/Project/blog`
-- **See** what's active vs gathering dust → `proj` shows a tree grouped by category
+```
+  No fzf? Pass mode works too — zero dependencies.
+  $ proj <cat>/<project>   →   jump by name (pass mode)
+```
 
-proj turns your project folder into a browsable, searchable catalog. It keeps itself in sync with your disk — `proj sync` registers new directories and flags missing ones, so the catalog always matches reality.
+<p align="center">
+  <img src="demo/demo-pass.gif" alt="Pass mode demo" width="720">
+</p>
 
-## Quick start
+---
+
+## In 30 seconds
 
 ```sh
-# Install binary (auto-detects OS/arch)
-curl -fsSL https://raw.githubusercontent.com/whizhuii/proj/master/install.sh | sh
-
-# Add to ~/.zshrc or ~/.bashrc (eval lines keep the function up-to-date)
-eval "$(proj-core shell func)"
-eval "$(proj-core shell completion --mode zsh)"   # or --mode bash
-
-# Register existing directories
-proj sync
-
-# See your project tree
-proj
-
-# Categorize projects (all start as uncategorized)
-proj mv my-project stable
-proj mv old-thing archived
+curl -fsSL https://raw.githubusercontent.com/whizhuii/proj/master/install.sh | sh && exec $SHELL -l
 ```
 
-<details>
-<summary>Alternative install methods</summary>
+Then:
 
 ```sh
-git clone https://github.com/whizhuii/proj && make build && make install
-```
-</details>
-
-Requires **git** (for `proj clone` / `proj init`). **fzf** is optional but recommended for interactive mode.
-
-> The `eval "$(proj-core shell func)"` line defines the `proj()` shell function, which is required because a binary cannot change the parent shell's working directory — only the function can `cd` on your behalf. See [Architecture](#architecture).
-
-## Two modes
-
-proj has two control modes toggled by the `use_fzf` setting.
-
-### Pass mode (default) · `use_fzf: false`
-
-`proj` shows a categorized tree. Type `proj <query>` to jump directly to a project.
-
-![Pass mode tree view](demo/demo-pass.gif)
-
-### Fzf mode · `use_fzf: true`
-
-`proj` opens a fuzzy picker. Type to filter, press Enter to cd.
-
-![Fzf mode interactive picker](demo/demo-fzf.gif)
-
-## Subcommands
-
-Beyond navigation, proj handles synchronization, categorization, and configuration.
-
-![init, mv, visibility filter demo](demo/demo-cmd.gif)
-
-### Navigate
-
-```
-proj                      Interactive picker or tree view
-proj blog                 Fuzzy match + cd into first result
-proj -a                   Show all categories (bypass visibility filter)
-proj go my-project        Print the absolute path (useful in scripts)
+proj sync                        # register existing directories
+proj blog                        # jump into ~/Project/blog (or type in fzf picker)
+proj mv blog stable              # tag it, directory stays put
 ```
 
-### Categorize
+## How it works
+
+proj is two pieces:
+
+- **proj-core** (Rust binary) — manages the YAML catalog, runs git operations, prints paths
+- **proj()** (shell function) — captures the output and `cd`s you into the project
+
+Two layers because a child process cannot change its parent shell's working directory — only the shell function running in your terminal can.
+
+Your projects stay flat in `~/Project/`. A YAML catalog (`projects.yaml`) maps each one to a category tag. The directory never moves — only the tag changes.
+
+## Two ways to use proj
+
+### 1. Fzf mode (default, recommended)
+
+Requires [fzf](https://github.com/junegunn/fzf). The install script will ask if you want to enable it.
 
 ```
-proj mv my-project stable     Tag it as stable
-proj mv old-thing archived    Archive it
-proj rm my-project            Move to removed
-proj list                     See the full tree
-proj list develop             See only develop projects
+$ proj
 ```
 
-### Clone or init
+Type to filter, press Enter to `cd`. No need to remember exact names — just type a fragment.
+
+The gif above shows it in action.
+
+### 2. Pass mode (fallback, zero dependencies)
+
+No fzf required. Works with any shell.
 
 ```
-proj clone git@github.com:user/repo.git   # Clone into ~/Project/repo + register
-proj init my-new-thing                     # mkdir + git init + register
-proj init -t stable my-new-thing           # Init directly into stable
+proj <cat>                      → list projects in a category
+proj <cat>/<project>            → jump into the project
+proj go <project>               → print the absolute path
+proj find <pattern>             → search projects by name
 ```
 
-## Command reference
+The gif above shows it in action.
 
-### Navigation
+## What you can do
+
+proj commands work with **project names** and **category names** — never with directory paths. The catalog is the source of truth.
+
+### Organize
 
 | Command | Description |
 |---------|-------------|
-| `proj` | Interactive picker or tree view (filtered by visible categories) |
-| `proj <query>` | Fuzzy match against project name and cd |
-| `proj go <name>` | Print absolute path |
-| `proj find <pattern>` | List all projects matching pattern |
+| `proj mv <name> <cat>` | Move a project to a category |
+| `proj mvt <cat> <names...>` | Batch move |
+| `proj rm <name>` | Mark as removed (directory stays on disk) |
+| `proj list [cat]` | Show tree, optionally filtered by category |
+| `proj rename <old> <new>` | Rename project (catalog + disk directory) |
+| `proj sync` | Scan for new/missing directories, update catalog |
+| `proj edit` | Bulk edit the catalog with `$EDITOR` |
 
-### Categorization
-
-| Command | Description |
-|---------|-------------|
-| `proj list [cat]` | Show tree (visible categories only), `-a` for all |
-| `proj mv <name> <cat>` | Move project to a different category |
-| `proj rm <name>` | Move project to `removed` |
-
-### Project creation
+### Jump
 
 | Command | Description |
 |---------|-------------|
-| `proj init <name>` | `mkdir` + `git init` + register |
+| `proj` | Open fzf picker (or show tree in pass mode) |
+| `proj <cat>/<project>` | Jump into a project by name (pass mode) |
+| `proj go <name>` | Print the absolute path |
+| `proj find <pattern>` | Search projects matching a pattern |
+
+### Create
+
+| Command | Description |
+|---------|-------------|
+| `proj init <name>` | Create directory + `git init` + register |
+| `proj init -t <cat> <name>` | Init directly into a category |
 | `proj clone <url>` | `git clone` into project root + register |
 
-### Maintenance
+### Maintain
 
 | Command | Description |
 |---------|-------------|
-| `proj sync` | Scan for new/missing directories |
-| `proj prune` | Remove entries categorized as `removed` whose disk directory no longer exists |
-| `proj rename <old> <new>` | Rename (config + disk directory) |
-| `proj edit` | Edit config with `$EDITOR` |
+| `proj prune` | Remove catalog entries tagged as `removed` whose disk directory no longer exists |
 | `proj config` | Show current configuration |
 
-> **Environment variable:** `PROJ_CORE` overrides the binary name (default: `proj-core`). Useful for testing or when using a custom build path.
+## How it compares
+
+```
+zoxide/autojump   →  freqency-based jump
+ghq               →  organize by source host
+proj              →  organize by category tag
+```
+
+proj separates **logical organization** from **directory layout**. Your files stay flat; the tag does the organizing.
 
 ## Configuration
 
-Auto-generated at `~/.config/proj/config.yaml` on first run. Below is the full config with all available fields:
+Auto-generated at `~/.config/proj/config.yaml`.
 
 ```yaml
-# Where projects live on disk (default: ~/Project).
-# All clone/init/sync operations happen under this directory.
-project_dir: ~/Project
+# Interactive mode: true = fzf picker (recommended), false = pass mode
+# The install script asks about this.
+use_fzf: true
 
-# Which categories show up in the default `proj` tree view.
-# Categories not in this list are hidden unless you pass `-a`.
+# Which categories appear by default in the tree view
 visible_categories: [develop, stable, uncategorized]
 
-# Set true for always-on fzf interactive mode on bare `proj`.
-# When false (default), `proj` shows a categorized tree.
-use_fzf: false
+# Where projects live on disk
+project_dir: ~/Project
 
-# Target category for `proj rm <name>` (default: removed).
-rm_to: removed
-
-# Target category for `proj init <name>` (default: develop).
+# Default category for proj init
 init_to: develop
-
-# Target category for `proj clone <url>` (default: uncategorized).
-clone_to: uncategorized
-
-# Category assigned to newly discovered directories on `proj sync` (default: uncategorized).
-sync_new_to: uncategorized
-
-# Category assigned to directories that vanished from disk on `proj sync` (default: removed).
-sync_missing_to: removed
 ```
 
-### Default routing
-
-The routing fields above control how `proj` auto-classifies projects.
-
-| Action / Event | Default category | Configurable via |
-|----------------|------------------|------------------|
-| `proj init` | `develop` | `init_to` |
-| `proj clone` | `uncategorized` | `clone_to` |
-| `proj rm` | `removed` | `rm_to` |
-| `proj sync` — new directory found | `uncategorized` | `sync_new_to` |
-| `proj sync` — directory missing | `removed` | `sync_missing_to` |
-
-## Data storage
-
-proj maintains two files under `~/.config/proj/`:
-
-| File | Format | Purpose |
-|------|--------|---------|
-| `config.yaml` | YAML (key-value) | Settings — project directory, visible categories, routing defaults |
-| `projects.yaml` | YAML (flat map) | Project registry — `project_name: category` entries, one per line |
-
-The **projects file** is the source of truth for categorization. `proj sync` reconciles it against the actual directories under `project_dir` (`~/Project/` by default), adding new entries and marking missing ones according to the configured routing rules. The `proj edit` command opens this file directly for bulk changes.
-
-## Architecture
-
-proj has two layers — a **backend binary** and a **frontend shell function**.
-
-| Layer | What | Role |
-|-------|------|------|
-| **Backend** | `proj-core` | Rust binary. Reads/writes config & project files, runs git ops, sync, rename. Outputs text. |
-| **Frontend** | `proj()` | Shell function (defined by `eval "$(proj-core shell func)"`). Calls the backend, captures output, **`cd`s** into the project. |
-
-**Why two layers?** A child process cannot `cd` its parent shell — that's a security boundary. The shell function runs in your terminal's process, so it can `cd`. The backend does all the data work; the function just captures the result and jumps.
-
-Data flow depends on the active mode:
-
-- **Pass mode** (`use_fzf: false`): `proj <query>` → backend does case-insensitive substring match → prints the path → function `cd`s.
-- **Fzf mode** (`use_fzf: true`): `proj` → backend prints all paths → piped through `fzf` for interactive filtering → user selects → function `cd`s.
+> Subset shown. See `proj-core config --example` for the full reference.
 
 ## Safety
 
-proj **never deletes your files**. It only manages the YAML catalog (`projects.yaml`).
+proj **never deletes your files**. It only manages the YAML catalog.
 
-Every operation preserves disk directories:
-
-- `proj rm <name>` — re-categorizes the project to `removed` in the catalog. The directory stays on disk.
+- `proj rm <name>` — re-categorizes the project to `removed`. The directory stays on disk.
 - `proj prune` — removes catalog entries that are already categorized as `removed` **and** whose disk directory no longer exists. Never touches existing directories.
 
-**To actually delete a project from disk**, you must do it manually:
+**To actually delete a project:**
 
 ```sh
-proj rm my-project          # mark as removed in catalog
-rm -rf ~/Project/my-project # delete from disk
-proj prune                  # clean up the catalog entry
+proj rm my-project              # mark as removed in catalog
+rm -rf ~/Project/my-project     # delete from disk
+proj prune                      # clean up catalog entry
 ```
 
 ## Credits
 
 - [pass](https://www.passwordstore.org/) — the standard Unix password manager, which inspired proj's two-mode design
-- [fzf](https://github.com/junegunn/fzf) — a general-purpose command-line fuzzy finder powering the interactive picker
+- [fzf](https://github.com/junegunn/fzf) — the fuzzy finder powering the interactive picker
 - [opencode](https://opencode.ai) — the AI coding assistant that built this project
 - [DeepSeek-V4-Flash](https://chat.deepseek.com/) & [DeepSeek-V4-Pro](https://chat.deepseek.com/) — the language models behind the AI
 
