@@ -92,6 +92,7 @@ main() {
     local url="https://github.com/${REPO}/releases/latest/download/${archive}"
 
     # 2. download & extract
+    printf "  \033[2m·\033[0m  downloading %s …\r" "${archive}"
     local tmpdir
     tmpdir="$(mktemp -d)"
     pushd "${tmpdir}" >/dev/null
@@ -105,6 +106,7 @@ main() {
     fi
 
     tar xzf "${archive}" || err "extract failed"
+    printf "\033[K  \033[32m✓\033[0m  proj-core downloaded\n"
 
     # 3. install binary
     mkdir -p "${BINDIR}"
@@ -113,19 +115,32 @@ main() {
     rm -rf "${tmpdir}"
     donef "proj-core installed to ${BINDIR}"
 
-    # 4. configure mode (fzf or pass)
-    configure_mode
-
-    # 5. shell integration (rc files)
+    # 4. detect rc files
     local rc_files=()
     for f in "$HOME/.zshrc" "$HOME/.bashrc" "$HOME/.bash_profile" "$HOME/.zprofile"; do
         [[ -f "$f" ]] && rc_files+=("$f")
     done
 
-    if [[ ${#rc_files[@]} -eq 0 ]]; then
-        warn "No shell rc file found (~/.zshrc, ~/.bashrc, …)"
-        hint "add manually: eval \"\$(${BINARY} shell func)\""
-    else
+    if [[ ${#rc_files[@]} -gt 0 ]]; then
+        # 4a. print rc info
+        if [[ ${#rc_files[@]} -eq 1 ]]; then
+            donef "Found 1 rc file: $(basename "${rc_files[0]}")"
+        else
+            donef "Found ${#rc_files[@]} rc files"
+        fi
+
+        # 4b. detect PATH
+        if [[ ":$PATH:" == *":$BINDIR:"* ]]; then
+            donef "${BINDIR} already in PATH"
+        else
+            export PATH="${BINDIR}:${PATH}"
+            donef "Added ${BINDIR} to PATH"
+        fi
+
+        # 4c. configure mode
+        configure_mode
+
+        # 4d. rc selection & append
         local selected=()
         if [[ ${#rc_files[@]} -eq 1 ]]; then
             selected=("${rc_files[@]}")
@@ -172,7 +187,7 @@ main() {
             cat >> "$rc" <<-RCEOF
 
 # ---- proj project manager ----
-export PATH="\${PATH}:${BINDIR}"
+export PATH="${BINDIR}:\${PATH}"
 eval "\$(${BINARY} shell func)"
 eval "\$(${BINARY} shell completion --mode ${shell_name})"
 RCEOF
@@ -184,11 +199,23 @@ RCEOF
             rc_name="${rc_name} + $(( ${#selected[@]} - 1 ))"
         fi
         donef "Added proj to ${rc_name}"
-    fi
 
-    echo ""
-    donef "proj is ready — run: exec \$SHELL -l"
-    echo ""
+        echo ""
+        donef "proj is ready — run: exec \$SHELL -l"
+        echo ""
+    else
+        # 4e. no rc files — skip shell integration, show manual guide
+        configure_mode
+
+        echo ""
+        donef "proj is ready — run: exec \$SHELL -l"
+        echo ""
+        echo "  →  add manually to your shell rc:"
+        echo "     export PATH=\"${BINDIR}:\$PATH\""
+        echo "     eval \"\$(${BINARY} shell func)\""
+        echo "     eval \"\$(${BINARY} shell completion --mode <zsh|bash>)\""
+        echo ""
+    fi
 }
 
 main "$@"
