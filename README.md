@@ -8,22 +8,24 @@
 
 ---
 
-```
-  $ proj   →   fuzzy picker (type, filter, enter, cd)
-```
+**Fzf mode**
 
 <p align="center">
   <img src="demo/demo-fzf.gif" alt="Fzf mode demo" width="720">
 </p>
 
-```
-  No fzf? Pass mode works too — zero dependencies.
-  $ proj <cat>/<project>   →   jump by name (pass mode)
-```
+**Pass-like mode**
 
 <p align="center">
   <img src="demo/demo-pass.gif" alt="Pass mode demo" width="720">
 </p>
+
+```
+  $ proj                   →   fuzzy picker (fzf mode)
+  $ proj <cat>/<project>   →   jump by name (pass-like mode)
+  $ proj mv <name> <cat>   →   tag a project
+  $ proj sync              →   scan for new/missing directories
+```
 
 ---
 
@@ -64,9 +66,7 @@ $ proj
 
 Type to filter, press Enter to `cd`. No need to remember exact names — just type a fragment.
 
-The gif above shows it in action.
-
-### 2. Pass mode (fallback, zero dependencies)
+### 2. Pass-like mode (fallback, zero dependencies)
 
 No fzf required. Works with any shell.
 
@@ -76,8 +76,6 @@ proj <cat>/<project>            → jump into the project
 proj go <project>               → print the absolute path
 proj find <pattern>             → search projects by name
 ```
-
-The gif above shows it in action.
 
 ## What you can do
 

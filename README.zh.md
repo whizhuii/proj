@@ -10,22 +10,24 @@
 
 ---
 
-```
-  $ proj   →   模糊选择器（打字过滤，回车跳转）
-```
+**Fzf 模式**
 
 <p align="center">
   <img src="demo/demo-fzf.gif" alt="Fzf 模式演示" width="720">
 </p>
 
-```
-  没有 fzf？Pass 模式同样可用——零依赖。
-  $ proj <分类>/<项目>   →   按名称跳转（pass 模式）
-```
+**Pass 模式**
 
 <p align="center">
   <img src="demo/demo-pass.gif" alt="Pass 模式演示" width="720">
 </p>
+
+```
+  $ proj                   →   模糊选择器（fzf 模式）
+  $ proj <分类>/<项目>     →   按名称跳转（pass 模式）
+  $ proj mv <项目> <分类>  →   打标签
+  $ proj sync              →   扫描新增/缺失目录
+```
 
 ---
 
@@ -66,8 +68,6 @@ $ proj
 
 打字过滤，回车跳转。不需要记全名——输个片段就够了。
 
-上方 gif 演示了实际效果。
-
 ### 2. Pass 模式（降级方案，零依赖）
 
 不需要 fzf，任何 shell 都能用。
@@ -78,8 +78,6 @@ proj <分类>/<项目>               → 按名称跳转
 proj go <项目>                   → 输出绝对路径
 proj find <关键字>               → 按名称搜索项目
 ```
-
-上方 gif 演示了实际效果。
 
 ## 你能做什么
 
