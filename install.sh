@@ -7,6 +7,7 @@ BINDIR="${HOME}/.local/bin"
 
 # ---- helpers ----
 donef() { printf "  \033[32m✓\033[0m  %s\n" "$*"; }
+warn()  { printf "  \033[33m!\033[0m  %s\n" "$*" >&2; }
 hint()  { printf "      \033[2m↳ %s\033[0m\n" "$*"; }
 err()   { printf "  \033[31mx\033[0m  %s\n" "$*" >&2; exit 1; }
 
@@ -122,8 +123,8 @@ main() {
     done
 
     if [[ ${#rc_files[@]} -eq 0 ]]; then
-        printf "  \033[33m!\033[0m  no shell rc file found (~/.zshrc, ~/.bashrc, etc)\n"
-        hint "add manually: eval \"\$(proj-core shell func)\""
+        warn "No shell rc file found (~/.zshrc, ~/.bashrc, …)"
+        hint "add manually: eval \"\$(${BINARY} shell func)\""
     else
         local selected=()
         if [[ ${#rc_files[@]} -eq 1 ]]; then
@@ -186,7 +187,7 @@ RCEOF
     fi
 
     echo ""
-    donef "proj is ready — restart your shell"
+    donef "proj is ready — run: exec \$SHELL -l"
     echo ""
 }
 
