@@ -10,15 +10,11 @@
 
 **Fzf mode**
 
-<p align="center">
-  <img src="demo/demo-fzf.gif" alt="Fzf mode demo" width="800">
-</p>
+![Fzf mode demo](demo/demo-fzf.gif)
 
 **Pass-like mode**
 
-<p align="center">
-  <img src="demo/demo-pass.gif" alt="Pass mode demo" width="800">
-</p>
+![Pass mode demo](demo/demo-pass.gif)
 
 ```
   $ proj                   →   fuzzy picker (fzf mode)
