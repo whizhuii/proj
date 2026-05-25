@@ -13,13 +13,11 @@
 **Fzf 模式**
 
 <p align="center">
-  <img src="demo/demo-fzf.gif" alt="Fzf 模式演示" width="720">
+  <img src="demo/demo-fzf.gif" alt="Fzf 模式演示" width="800">
 </p>
 
-**Pass 模式**
-
 <p align="center">
-  <img src="demo/demo-pass.gif" alt="Pass 模式演示" width="720">
+  <img src="demo/demo-pass.gif" alt="Pass 模式演示" width="800">
 </p>
 
 ```

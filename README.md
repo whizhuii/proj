@@ -11,13 +11,13 @@
 **Fzf mode**
 
 <p align="center">
-  <img src="demo/demo-fzf.gif" alt="Fzf mode demo" width="720">
+  <img src="demo/demo-fzf.gif" alt="Fzf mode demo" width="800">
 </p>
 
 **Pass-like mode**
 
 <p align="center">
-  <img src="demo/demo-pass.gif" alt="Pass mode demo" width="720">
+  <img src="demo/demo-pass.gif" alt="Pass mode demo" width="800">
 </p>
 
 ```
