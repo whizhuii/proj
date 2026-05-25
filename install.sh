@@ -6,10 +6,9 @@ BINARY="proj-core"
 BINDIR="${HOME}/.local/bin"
 
 # ---- helpers ----
-info()  { printf "  \033[1m·\033[0m %s\n" "$*"; }
-warn()  { printf "  \033[33m!\033[0m %s\n" "$*" >&2; }
-err()   { printf "  \033[31mx\033[0m %s\n" "$*" >&2; exit 1; }
-donef() { printf "  \033[32m✓\033[0m %s\n" "$*"; }
+donef() { printf "  \033[32m✓\033[0m  %s\n" "$*"; }
+hint()  { printf "      \033[2m↳ %s\033[0m\n" "$*"; }
+err()   { printf "  \033[31mx\033[0m  %s\n" "$*" >&2; exit 1; }
 
 detect_platform() {
     local os arch
@@ -46,15 +45,21 @@ use_fzf: ${use_fzf}
 no_git: false
 project_dir: ~/Project
 CONF
-    donef "configured ~/.config/proj/config.yaml (use_fzf: ${use_fzf})"
+
+    if [[ "${use_fzf}" == "true" ]]; then
+        donef "Fzf mode configured"
+    else
+        donef "Pass mode configured (fzf not found)"
+        hint "install fzf later for interactive picker"
+    fi
 }
 
 configure_mode() {
     local config_file="${HOME}/.config/proj/config.yaml"
 
     if [[ -f "${config_file}" ]]; then
-        info "config already exists at ${config_file}, skipping mode setup"
-        info "edit it manually or delete it to re-run setup"
+        donef "Config already exists at ${config_file}"
+        hint "delete it to re-run mode setup"
         return
     fi
 
@@ -67,20 +72,16 @@ configure_mode() {
                 ;;
             *)
                 write_config "false"
-                info "pass mode selected. you can switch later by setting use_fzf: true in config"
+                hint "switch later by setting use_fzf: true in config"
                 ;;
         esac
     else
-        warn "fzf not found — pass mode will be used (zero dependencies)"
-        info "install fzf later (https://github.com/junegunn/fzf) and set use_fzf: true in config"
         write_config "false"
     fi
 }
 
 # ---- main ----
 main() {
-    echo ""
-    info "proj — project directory management"
     echo ""
 
     # 1. resolve download URL
@@ -90,15 +91,14 @@ main() {
     local url="https://github.com/${REPO}/releases/latest/download/${archive}"
 
     # 2. download & extract
-    info "downloading ${archive} …"
     local tmpdir
     tmpdir="$(mktemp -d)"
     pushd "${tmpdir}" >/dev/null
 
     if command -v curl >/dev/null 2>&1; then
-        curl -fsSLO "${url}" || err "download failed"
+        curl -fsSLO "${url}" 2>/dev/null || err "download failed"
     elif command -v wget >/dev/null 2>&1; then
-        wget -q "${url}" || err "download failed"
+        wget -q "${url}" 2>/dev/null || err "download failed"
     else
         err "need curl or wget"
     fi
@@ -110,7 +110,7 @@ main() {
     install -m 755 "${BINARY}" "${BINDIR}/${BINARY}"
     popd >/dev/null
     rm -rf "${tmpdir}"
-    donef "installed ${BINARY} to ${BINDIR}"
+    donef "proj-core installed to ${BINDIR}"
 
     # 4. configure mode (fzf or pass)
     configure_mode
@@ -129,7 +129,6 @@ main() {
             bash) rc_files=("$HOME/.bashrc") ;;
             *)    rc_files=("$HOME/.profile") ;;
         esac
-        info "no existing rc file found, will create ${rc_files[0]}"
     fi
 
     local selected=()
@@ -163,7 +162,6 @@ main() {
         done
 
         if [[ ${#selected[@]} -eq 0 ]]; then
-            info "no file selected, defaulting to ${rc_files[0]}"
             selected=("${rc_files[0]}")
         fi
     fi
@@ -183,11 +181,17 @@ export PATH="\${PATH}:${BINDIR}"
 eval "\$(${BINARY} shell func)"
 eval "\$(${BINARY} shell completion --mode ${shell_name})"
 RCEOF
-        donef "added proj to ${rc}"
     done
 
+    local rc_name
+    rc_name="$(basename "${selected[0]}")"
+    if [[ ${#selected[@]} -gt 1 ]]; then
+        rc_name="${rc_name} + $(( ${#selected[@]} - 1 ))"
+    fi
+    donef "Added proj to ${rc_name}"
+
     echo ""
-    donef "proj is ready. Run: exec \$SHELL -l"
+    donef "proj is ready — run: exec \$SHELL -l"
     echo ""
 }
 
