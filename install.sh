@@ -201,19 +201,26 @@ RCEOF
         donef "Added proj to ${rc_name}"
 
         echo ""
-        donef "proj is ready — run: exec \$SHELL -l"
+        donef "proj is ready — run: exec \$SHELL"
         echo ""
     else
         # 4e. no rc files — skip shell integration, show manual guide
         configure_mode
 
         echo ""
-        donef "proj is ready — run: exec \$SHELL -l"
+        donef "proj is ready — run: exec \$SHELL"
         echo ""
         echo "  →  add manually to your shell rc:"
         echo "     export PATH=\"${BINDIR}:\$PATH\""
         echo "     eval \"\$(${BINARY} shell func)\""
-        echo "     eval \"\$(${BINARY} shell completion --mode <zsh|bash>)\""
+
+        local guide_shell
+        guide_shell="$(basename "${SHELL:-/bin/sh}")"
+        case "${guide_shell}" in
+            zsh|bash) ;;
+            *) guide_shell="zsh" ;;
+        esac
+        echo "     eval \"\$(${BINARY} shell completion --mode ${guide_shell})\""
         echo ""
     fi
 }
