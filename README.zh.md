@@ -18,10 +18,6 @@
 
 ![Pass 模式演示](demo/demo-pass.gif)
 
-<p align="center">
-  <img src="demo/demo-pass.gif" alt="Pass 模式演示" width="800">
-</p>
-
 ```
   $ proj                   →   模糊选择器（fzf 模式）
   $ proj <分类>/<项目>     →   按名称跳转（pass 模式）
@@ -34,7 +30,7 @@
 ## 30 秒上手
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/whizhuii/proj/master/install.sh | sh && exec $SHELL -l
+curl -fsSL https://raw.githubusercontent.com/whizhuii/proj/master/install.sh | sh
 ```
 
 然后：

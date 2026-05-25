@@ -28,7 +28,7 @@
 ## In 30 seconds
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/whizhuii/proj/master/install.sh | sh && exec $SHELL -l
+curl -fsSL https://raw.githubusercontent.com/whizhuii/proj/master/install.sh | sh
 ```
 
 Then:

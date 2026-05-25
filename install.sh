@@ -122,76 +122,71 @@ main() {
     done
 
     if [[ ${#rc_files[@]} -eq 0 ]]; then
-        local shell_name
-        shell_name="$(basename "${SHELL:-/bin/sh}")"
-        case "${shell_name}" in
-            zsh)  rc_files=("$HOME/.zshrc") ;;
-            bash) rc_files=("$HOME/.bashrc") ;;
-            *)    rc_files=("$HOME/.profile") ;;
-        esac
-    fi
-
-    local selected=()
-    if [[ ${#rc_files[@]} -eq 1 ]]; then
-        selected=("${rc_files[@]}")
+        printf "  \033[33m!\033[0m  no shell rc file found (~/.zshrc, ~/.bashrc, etc)\n"
+        hint "add manually: eval \"\$(proj-core shell func)\""
     else
-        local toggle=()
-        for ((i=0; i<${#rc_files[@]}; i++)); do
-            toggle+=(0)
-        done
-
-        while true; do
-            printf "\n  Select rc files to update (Space to toggle, Enter to confirm):\n\n"
+        local selected=()
+        if [[ ${#rc_files[@]} -eq 1 ]]; then
+            selected=("${rc_files[@]}")
+        else
+            local toggle=()
             for ((i=0; i<${#rc_files[@]}; i++)); do
-                local mark=" "
-                [[ ${toggle[$i]} -eq 1 ]] && mark="*"
-                printf "  [%s] %d) %s\n" "$mark" $((i+1)) "${rc_files[$i]}"
+                toggle+=(0)
             done
-            printf "\n  Enter number to toggle, or press Enter to confirm: "
-            read -r input
-            [[ -z "$input" ]] && break
 
-            if [[ "$input" =~ ^[0-9]+$ ]] && (( input >= 1 && input <= ${#rc_files[@]} )); then
-                local idx=$((input-1))
-                toggle[$idx]=$(( 1 - toggle[$idx] ))
+            while true; do
+                printf "\n  Select rc files to update (Space to toggle, Enter to confirm):\n\n"
+                for ((i=0; i<${#rc_files[@]}; i++)); do
+                    local mark=" "
+                    [[ ${toggle[$i]} -eq 1 ]] && mark="*"
+                    printf "  [%s] %d) %s\n" "$mark" $((i+1)) "${rc_files[$i]}"
+                done
+                printf "\n  Enter number to toggle, or press Enter to confirm: "
+                read -r input
+                [[ -z "$input" ]] && break
+
+                if [[ "$input" =~ ^[0-9]+$ ]] && (( input >= 1 && input <= ${#rc_files[@]} )); then
+                    local idx=$((input-1))
+                    toggle[$idx]=$(( 1 - toggle[$idx] ))
+                fi
+            done
+
+            for ((i=0; i<${#rc_files[@]}; i++)); do
+                [[ ${toggle[$i]} -eq 1 ]] && selected+=("${rc_files[$i]}")
+            done
+
+            if [[ ${#selected[@]} -eq 0 ]]; then
+                selected=("${rc_files[0]}")
             fi
-        done
-
-        for ((i=0; i<${#rc_files[@]}; i++)); do
-            [[ ${toggle[$i]} -eq 1 ]] && selected+=("${rc_files[$i]}")
-        done
-
-        if [[ ${#selected[@]} -eq 0 ]]; then
-            selected=("${rc_files[0]}")
         fi
-    fi
 
-    for rc in "${selected[@]}"; do
-        local shell_name
-        case "$(basename "$rc")" in
-            .zshrc|.zprofile)       shell_name="zsh" ;;
-            .bashrc|.bash_profile)  shell_name="bash" ;;
-            *)                      shell_name="$(basename "${SHELL:-/bin/sh}")" ;;
-        esac
+        for rc in "${selected[@]}"; do
+            local shell_name
+            case "$(basename "$rc")" in
+                .zshrc|.zprofile)       shell_name="zsh" ;;
+                .bashrc|.bash_profile)  shell_name="bash" ;;
+                *)                      shell_name="$(basename "${SHELL:-/bin/sh}")" ;;
+            esac
 
-        cat >> "$rc" <<-RCEOF
+            cat >> "$rc" <<-RCEOF
 
 # ---- proj project manager ----
 export PATH="\${PATH}:${BINDIR}"
 eval "\$(${BINARY} shell func)"
 eval "\$(${BINARY} shell completion --mode ${shell_name})"
 RCEOF
-    done
+        done
 
-    local rc_name
-    rc_name="$(basename "${selected[0]}")"
-    if [[ ${#selected[@]} -gt 1 ]]; then
-        rc_name="${rc_name} + $(( ${#selected[@]} - 1 ))"
+        local rc_name
+        rc_name="$(basename "${selected[0]}")"
+        if [[ ${#selected[@]} -gt 1 ]]; then
+            rc_name="${rc_name} + $(( ${#selected[@]} - 1 ))"
+        fi
+        donef "Added proj to ${rc_name}"
     fi
-    donef "Added proj to ${rc_name}"
 
     echo ""
-    donef "proj is ready — run: exec \$SHELL -l"
+    donef "proj is ready — restart your shell"
     echo ""
 }
 
